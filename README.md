@@ -7,20 +7,20 @@ CSV as backup/alternative
 
 Structure for portfolio showcase:
 
-text
 Habits-Tracking/
 ├── data/
-│   ├── raw/          # Manually exported files
-│   └── processed/    # Cleaned versions
-├── notebooks/        # Jupyter for exploration
+│   ├── raw/            # Manually impoerted files
+│   └── processed/      # Cleaned versions
+├── notebooks/          # Jupyter for exploration
+├── old/                # Previous Tests
 ├── src/
-│   ├── database.py   # SQL operations
-│   ├── etl.py        # Cleaning pipeline
-│   ├── analytics.py  # Statistical analysis
-│   ├── dashboard.py  # Plotly/PowerBI integration
-│   └── ml.py         # Predictive models
-├── docs/             # Documentation
-└── README.md         # Project showcase
+│   ├── database.py     # SQL operations
+│   ├── etl.py          # Cleaning pipeline
+│   ├── analytics.py    # Statistical analysis
+│   ├── dashboard.py    # Plotly/PowerBI integration
+│   └── ml.py           # Predictive models
+├── docs/               # Documentation
+└── README.md           # Project showcase
 
 Key Features:
 
