@@ -7,6 +7,7 @@ CSV as backup/alternative
 
 Structure for portfolio showcase:
 
+```
 Habits-Tracking/
 ├── data/
 │   ├── raw/            # Manually impoerted files
@@ -21,7 +22,7 @@ Habits-Tracking/
 │   └── ml.py           # Predictive models
 ├── docs/               # Documentation
 └── README.md           # Project showcase
-
+```
 Key Features:
 
 SQL: Query habit trends, correlations
@@ -35,6 +36,17 @@ ML: Predict habit completion, detect anomalies
 Workflow for Portfolio Project:
 
 1. Data Ingestion (Manual → Automated)
+
+```
+data/
+├── raw/
+│   ├── Loop Habits CSV YYYY-MM-DD/
+│   │   ├── Checkmarks.csv
+│   │   └── [001-150] Habit/
+│   │       └── Checkmarcs.csv
+│   └── Loop Habits Backup YYYY-MM-DD ######.db
+└── processed/
+```
 
 Script to auto-process new exports in data/raw/
 

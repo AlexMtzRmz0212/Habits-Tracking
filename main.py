@@ -1,5 +1,5 @@
 import pandas as pd
-from src.etl import HabitCleaner
+from cleaner import HabitCleaner
 from src.loader import HabitDataLoader
 
 def main():
