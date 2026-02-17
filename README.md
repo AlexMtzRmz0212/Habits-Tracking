@@ -15,8 +15,9 @@ Habits-Tracking/
 ├── notebooks/          # Jupyter for exploration
 ├── old/                # Previous Tests
 ├── src/
+│   ├── loader.py       # Done
+│   ├── cleaner.py      # To Do
 │   ├── database.py     # SQL operations
-│   ├── etl.py          # Cleaning pipeline
 │   ├── analytics.py    # Statistical analysis
 │   ├── dashboard.py    # Plotly/PowerBI integration
 │   └── ml.py           # Predictive models

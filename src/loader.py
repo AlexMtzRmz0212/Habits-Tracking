@@ -74,14 +74,14 @@ if __name__ == "__main__":
     
     utils.cls()
     
-    df = load_db()  # Load newest .db file
-    print(df['habits'].head())
+    # df = load_db()  # Load newest .db file
+    # print(df['habits'].head())
 
-    df = load_csv()  # Load all habits
+    # df = load_csv()  # Load all habits
+    # print(df.head())
+
+    df = load_csv("Sudoku")  # Load specific habit by name
     print(df.head())
 
-    df = load_csv("Level of Energy")  # Load specific habit by name
-    print(df.head())
-
-    df = load_csv(11)  # Load specific habit by number
-    print(df.head())
+    # df = load_csv(11)  # Load specific habit by number
+    # print(df.head())
