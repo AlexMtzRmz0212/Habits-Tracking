@@ -10,15 +10,17 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+# NOTE: these are anchored with a leading slash on purpose. Unanchored,
+# `lib/` and `dist/` match at EVERY level and silently swallow web/lib/.
 .Python
-build/
+/build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -208,3 +210,33 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ---------------------------------------------------------------------------
+# Habit data — NEVER commit. Real exports contain personal habit names and
+# check-in history. The durable store is Postgres, not git. See README.
+# ---------------------------------------------------------------------------
+data/
+*.db
+*.sqlite
+*.sqlite3
+Loop Habits Backup*
+Loop Habits CSV*
+
+# Notebooks save their OUTPUTS, which embed real habit names, dataframe dumps
+# and plots. Committing them leaked data once already — keep them out.
+*.ipynb
+
+# Credentials
+.env
+.env.*
+!.env.example
+service-account*.json
+*credentials*.json
+
+# Web app (Next.js)
+node_modules/
+.next/
+out/
+.vercel/
+next-env.d.ts
+*.tsbuildinfo

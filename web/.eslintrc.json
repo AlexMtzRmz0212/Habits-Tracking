@@ -1,0 +1,21 @@
+{
+  "extends": "next/core-web-vitals",
+  "overrides": [
+    {
+      "files": ["app/page.tsx", "app/layout.tsx", "components/InsightCard.tsx", "components/InsightChart.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/lib/db/private", "@/lib/db/private"],
+                "message": "Public surfaces must not import lib/db/private. Published analyses come from lib/db/public."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

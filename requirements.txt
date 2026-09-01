@@ -1,0 +1,15 @@
+# Core data pipeline
+pandas>=2.2
+psycopg[binary]>=3.2
+python-dotenv>=1.0
+
+# Google Drive sync (Phase 3)
+google-api-python-client>=2.140
+google-auth>=2.34
+
+# Analytics / ML (Phase 4)
+scikit-learn>=1.5
+numpy>=1.26
+
+# Dev
+pytest>=8.3
