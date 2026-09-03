@@ -1,0 +1,49 @@
+name: Sync habits from Drive
+
+on:
+  schedule:
+    # 05:15 UTC daily. Off the hour because scheduled runs cluster on the hour
+    # and GitHub delays them under load.
+    - cron: "15 5 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Re-import even if the backup is unchanged"
+        type: boolean
+        default: false
+
+concurrency:
+  # Never let two syncs write to the database at once.
+  group: habits-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Pull the newest backup and load it
+        env:
+          # The DIRECT Neon endpoint, not the pooled one: this is a single
+          # long-lived connection doing batch upserts.
+          DATABASE_URL_PRIVATE: ${{ secrets.DATABASE_URL_PRIVATE }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+        run: |
+          python -m pipeline.run_sync --from-drive \
+            ${{ inputs.force && '--force' || '' }}
+
+      - name: Recompute derived metrics and analyses
+        env:
+          DATABASE_URL_PRIVATE: ${{ secrets.DATABASE_URL_PRIVATE }}
+        run: python -m pipeline.run_analyze

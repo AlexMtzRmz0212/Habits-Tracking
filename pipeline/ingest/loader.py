@@ -154,8 +154,15 @@ def load_backup(path: Path | str) -> tuple[list[Habit], list[Repetition]]:
     if not path.exists():
         raise FileNotFoundError(f"No such backup: {path}")
 
-    with _connect(path) as conn:
+    # NOT `with sqlite3.connect(...)`: that context manager commits the
+    # transaction but leaves the connection OPEN. On Windows an open handle
+    # blocks deleting the file, which broke cleanup of the temp directory the
+    # Drive sync downloads into.
+    conn = _connect(path)
+    try:
         habits = read_habits(conn)
         repetitions = list(read_repetitions(conn, habits))
+    finally:
+        conn.close()
 
     return habits, repetitions
