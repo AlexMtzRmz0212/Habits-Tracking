@@ -232,6 +232,11 @@ Loop Habits CSV*
 !.env.example
 service-account*.json
 *credentials*.json
+# Google names service-account keys <project>-<random>.json, which matches
+# neither pattern above. Cover this project's, since a key landing in the repo
+# would otherwise be committed.
+habits-sync-*.json
+*-*.iam.gserviceaccount.com.json
 
 # Web app (Next.js)
 node_modules/
