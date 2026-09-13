@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import InsightCard from "@/components/InsightCard";
 import PinGate from "@/components/PinGate";
@@ -35,7 +36,9 @@ export default async function DashboardPage() {
   return (
     <main className="shell">
       <header className="masthead">
-        <p className="meta">Private dashboard</p>
+        <p className="meta">
+          <Link href="/">← Landing page</Link> · Private dashboard
+        </p>
         <h1>Everything, including what isn&apos;t published</h1>
         <ul className="stat-row" style={{ marginTop: "1.5rem" }}>
           <li>
@@ -86,7 +89,7 @@ export default async function DashboardPage() {
                   <td className="meta">{habit.valueType}</td>
                   <td className="num">{habit.entries}</td>
                   <td className="num">
-                    {habit.completionPct === null ? "—" : `${habit.completionPct}%`}
+                    {habit.completionPct === null ? "n/a" : `${habit.completionPct}%`}
                   </td>
                 </tr>
               ))}

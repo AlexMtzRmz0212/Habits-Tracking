@@ -134,10 +134,91 @@ body {
   color: var(--muted);
 }
 
-/* Charts must never force the page to scroll sideways. */
+/* --- story timeline ---------------------------------------------------- */
+
+.story {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem 1.5rem 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.story-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  fill: var(--muted);
+}
+
+.story-label-accent {
+  fill: var(--accent);
+  font-weight: 600;
+}
+
+.story-sub {
+  font-size: 11px;
+  fill: var(--muted);
+  opacity: 0.85;
+}
+
+.story-path {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: story-draw 1.8s ease-out forwards;
+}
+
+@keyframes story-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.story-pulse {
+  transform-origin: 840px 18px;
+  animation: story-pulse 2.2s ease-out infinite;
+}
+
+@keyframes story-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .story-pulse {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Tables (e.g. the habits list) can genuinely be wider than the card on a
+   narrow screen, so they keep a scrollable wrapper. */
 .chart-wrap {
   width: 100%;
   overflow-x: auto;
+}
+
+/* Charts are already fully responsive (ResponsiveContainer fills this),
+   so no scrolling is ever needed here. overflow: hidden also swallows the
+   odd sub-pixel width Recharts can compute, which is enough on its own to
+   make overflow-x: auto show a scrollbar even though nothing is clipped. */
+.chart-frame {
+  width: 100%;
+  overflow: hidden;
 }
 
 details.sql {
@@ -204,6 +285,35 @@ details.sql pre {
 .gate button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.ghost-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.ghost-btn:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.ghost-btn-lock {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  color: var(--accent);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 1px;
 }
 
 .error {

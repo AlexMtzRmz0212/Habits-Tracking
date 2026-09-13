@@ -32,10 +32,16 @@ const axis = {
   opacity: 0.55,
 };
 
-function Frame({ children }: { children: React.ReactElement }) {
+function Frame({
+  children,
+  height = 240,
+}: {
+  children: React.ReactElement;
+  height?: number;
+}) {
   return (
-    <div className="chart-wrap">
-      <div style={{ minWidth: 320, height: 240 }}>
+    <div className="chart-frame">
+      <div style={{ width: "100%", height }}>
         <ResponsiveContainer width="100%" height="100%">
           {children}
         </ResponsiveContainer>
@@ -117,14 +123,26 @@ export default function InsightChart({ metrics }: { metrics: InsightMetrics }) {
     const values = rows.map((r) => Number(r[valueKey]));
     const peak = Math.max(...values);
 
+    // With many categories, showing every tick just overlaps into mush.
+    // Space them out instead and tilt what's left so short labels stay
+    // legible without needing to scroll the chart to read them.
+    const crowded = rows.length > 10;
+
     return (
-      <Frame>
-        <BarChart data={rows} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
+      <Frame height={crowded ? 260 : 240}>
+        <BarChart
+          data={rows}
+          margin={{ top: 4, right: 8, bottom: crowded ? 20 : 0, left: -18 }}
+        >
           <CartesianGrid stroke={GRID} vertical={false} />
           <XAxis
             dataKey={labelKey}
             {...axis}
-            interval={0}
+            interval={crowded ? "preserveStartEnd" : 0}
+            minTickGap={crowded ? 24 : undefined}
+            angle={crowded ? -35 : 0}
+            textAnchor={crowded ? "end" : "middle"}
+            height={crowded ? 40 : 30}
             tickFormatter={(v: string) =>
               typeof v === "string" && v.length > 9 ? v.slice(0, 3) : v
             }
