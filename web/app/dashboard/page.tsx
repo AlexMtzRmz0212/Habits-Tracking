@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import InsightCard from "@/components/InsightCard";
+import BlockControls from "@/components/BlockControls";
+import OtherHabits, { type OtherHabit } from "@/components/OtherHabits";
 import PinGate from "@/components/PinGate";
-import {
-  getAllInsights,
-  getDashboardStats,
-  getHabitSummary,
-} from "@/lib/db/private";
+import SiteBlocks from "@/components/SiteBlocks";
+import Tabs from "@/components/Tabs";
+import { getAllBlocks } from "@/lib/db/private";
 import { isUnlocked } from "@/lib/session";
+import { effectiveStatus, spanLine } from "@/lib/story";
+import type { SiteBlock } from "@/lib/types";
 
 // Never prerender: this page's content depends entirely on a cookie, and a
 // build-time render would have no session at all.
@@ -27,115 +28,101 @@ export default async function DashboardPage() {
     return <PinGate />;
   }
 
-  const [stats, insights, habits] = await Promise.all([
-    getDashboardStats(),
-    getAllInsights(),
-    getHabitSummary(15),
-  ]);
+  const all = await getAllBlocks();
+  const shown = all.filter((b) => b.isPublic).length;
+
+  // A habit earns a card once it has a story: you wrote the why, you chose to
+  // show it, or it is retired (by you, or deleted in Loop) since those are the
+  // ones worth telling. Everything else waits in the list below.
+  const hasStory = (b: (typeof all)[number]) =>
+    b.kind === "stat" ||
+    b.isPublic ||
+    b.retired ||
+    b.body.trim() !== "" ||
+    b.payload.status === "removed_from_app";
+
+  const blocks = all.filter(hasStory);
+  // The list holds every habit, including those already shown as cards, so
+  // filters like "Retired" find them too.
+  const others: OtherHabit[] = all
+    .filter((b) => b.kind === "habit_story")
+    .map((b) => ({
+      id: b.id,
+      title: b.title,
+      body: b.body,
+      isPublic: b.isPublic,
+      retired: b.retired,
+      hasStory: hasStory(b),
+      status: effectiveStatus(b),
+      span: spanLine(b.payload, effectiveStatus(b)),
+      firstEntry: b.payload.firstEntry ?? null,
+      lastEntry: b.payload.lastEntry ?? null,
+      entries: b.payload.entries ?? 0,
+      calendar: b.payload.calendar ?? null,
+    }));
+
+  const controls = (block: SiteBlock & { isPublic?: boolean }) => (
+    <BlockControls
+      id={block.id}
+      isPublic={block.isPublic ?? false}
+      title={block.title}
+      body={block.body}
+      retired={block.retired}
+      editable={block.kind === "habit_story"}
+    />
+  );
 
   return (
     <main className="shell">
-      <header className="masthead">
+      <header className="masthead" style={{ position: "relative" }}>
+        <form action="/api/lock" method="post" className="logout">
+          <button type="submit" className="meta">
+            Log out
+          </button>
+        </form>
         <p className="meta">
           <Link href="/">← Landing page</Link> · Private dashboard
         </p>
-        <h1>Everything, including what isn&apos;t published</h1>
-        <ul className="stat-row" style={{ marginTop: "1.5rem" }}>
-          <li>
-            <div className="stat-value">{stats.habits}</div>
-            <div className="stat-label">Habits</div>
-          </li>
-          <li>
-            <div className="stat-value">{stats.repetitions.toLocaleString()}</div>
-            <div className="stat-label">Entries</div>
-          </li>
-          <li>
-            <div className="stat-value">{stats.analyses}</div>
-            <div className="stat-label">Analyses</div>
-          </li>
-          <li>
-            <div className="stat-value">{stats.published}</div>
-            <div className="stat-label">Published</div>
-          </li>
-        </ul>
         <p className="meta">
-          {stats.firstEntry} → {stats.lastEntry}
+          {shown} of {all.length} shown
         </p>
       </header>
 
-      <section>
-        <h2 style={{ fontSize: "1rem", letterSpacing: "-0.01em" }}>
-          Most-tracked habits
-        </h2>
-        <div className="chart-wrap">
-          <table className="habits">
-            <thead>
-              <tr>
-                <th>Habit</th>
-                <th>Type</th>
-                <th className="num">Entries</th>
-                <th className="num">Done</th>
-              </tr>
-            </thead>
-            <tbody>
-              {habits.map((habit) => (
-                <tr key={habit.name}>
-                  <td>
-                    {habit.name}
-                    {habit.archived && (
-                      <span className="meta"> · archived</span>
-                    )}
-                  </td>
-                  <td className="meta">{habit.valueType}</td>
-                  <td className="num">{habit.entries}</td>
-                  <td className="num">
-                    {habit.completionPct === null ? "n/a" : `${habit.completionPct}%`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {all.length === 0 ? (
+        <div className="empty">
+          <p>No story blocks yet.</p>
+          <p>
+            Run <code>python -m pipeline.run_analyze</code>
+          </p>
         </div>
-      </section>
-
-      <section style={{ marginTop: "3rem" }}>
-        <h2 style={{ fontSize: "1rem", letterSpacing: "-0.01em" }}>
-          All analyses
-        </h2>
-        {insights.length === 0 ? (
-          <div className="empty">
-            <p>No analyses yet.</p>
-            <p>
-              Run <code>python -m pipeline.run_analyze</code>
-            </p>
-          </div>
-        ) : (
-          insights.map((insight) => (
-            <div key={insight.id}>
-              <p className="meta" style={{ marginBottom: "-0.75rem" }}>
-                {insight.isPublic ? "● published" : "○ private"} · {insight.slug}
-              </p>
-              <InsightCard insight={insight} />
-            </div>
-          ))
-        )}
-      </section>
-
-      <form action="/api/lock" method="post" style={{ marginTop: "2rem" }}>
-        <button
-          type="submit"
-          className="meta"
-          style={{
-            background: "none",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            color: "inherit",
-          }}
-        >
-          Lock this dashboard
-        </button>
-      </form>
+      ) : (
+        <Tabs
+          tabs={[
+            {
+              id: "stats",
+              label: "Stats",
+              content: <SiteBlocks blocks={blocks} kind="stat" controls={controls} />,
+            },
+            {
+              id: "habits",
+              label: "Habits",
+              content: <OtherHabits habits={others} />,
+            },
+            {
+              id: "stories",
+              label: "Stories",
+              content: (
+                <SiteBlocks
+                  blocks={blocks}
+                  kind="habit_story"
+                  controls={controls}
+                  empty="No stories yet. Open a habit in the Habits tab and add the why."
+                />
+              ),
+            },
+          ]}
+        />
+      )}
     </main>
   );
 }

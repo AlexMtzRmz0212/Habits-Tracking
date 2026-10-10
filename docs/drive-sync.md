@@ -32,6 +32,22 @@ Each export is a new timestamped file, so the folder builds up a backup
 history. The sync always takes the newest `.db` and ignores the others, so you
 can leave them or clear them out as you prefer.
 
+### Deleting a habit in Loop
+
+Go ahead. The sync only ever adds and updates; it never deletes. A habit that
+is missing from the newest backup stays in the database with all its entries,
+is marked `removed_from_app_at`, and keeps its story on the website. The next
+`run_analyze` writes one final snapshot of its dates and numbers, and from then
+on that story is frozen. A habit you later restore reappears and starts
+updating again.
+
+The "deleted" date shown on the site is the day the sync noticed, not the day
+you deleted it. A backup with no habits at all is ignored, so a broken export
+can't retire everything.
+
+The one thing not to do is delete rows from the `habits` table by hand: that
+would cascade to its entries.
+
 Note the folder's ID -- it is the last part of the URL when you open the folder
 in a browser:
 

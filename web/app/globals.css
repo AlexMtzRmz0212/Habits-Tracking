@@ -56,11 +56,40 @@ body {
   margin-bottom: 2.5rem;
 }
 
+/* The journal voice: a serif for the words that are written TO the habits and
+   ABOUT them (title, entry names, your notes). Data stays sans and mono. */
+:root {
+  --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+}
+
+.masthead h1,
+.timeline-card h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+}
+
 .masthead h1 {
   font-size: clamp(1.8rem, 4vw, 2.6rem);
   line-height: 1.15;
   margin: 0 0 0.5rem;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+}
+
+.lede,
+.timeline-note,
+.signoff {
+  font-family: var(--serif);
+}
+
+.timeline-note {
+  font-style: italic;
+  font-size: 1.05rem;
+}
+
+.signoff {
+  font-style: italic;
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem;
 }
 
 .lede {
@@ -205,6 +234,391 @@ body {
   }
 }
 
+/* --- tabs ---------------------------------------------------------------- */
+
+.tab-list {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.6rem 1rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+/* --- habit stories ----------------------------------------------------- */
+
+.block-stats {
+  margin-bottom: 2.5rem;
+}
+
+.timeline {
+  position: relative;
+  list-style: none;
+  margin: 0 0 2.5rem;
+  padding: 0 0 0 1.5rem;
+  border-left: 2px solid var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem - 6px);
+  top: 1.9rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+
+.timeline-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+}
+
+.timeline-card h2 {
+  font-size: 1.2rem;
+  margin: 0.4rem 0 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.timeline-span {
+  margin: 0 0 0.75rem;
+}
+
+.timeline-note {
+  margin: 0 0 0.75rem;
+  max-width: var(--measure);
+}
+
+.timeline-facts {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.timeline-events {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.tag-muted {
+  color: var(--muted);
+  background: var(--grid);
+}
+
+/* Private dashboard only: hidden blocks stay readable but clearly "off". */
+.stat-row > .is-hidden > :not(.block-controls),
+.timeline-item.is-hidden .timeline-card > :not(.block-controls) {
+  opacity: 0.5;
+}
+
+.block-controls {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+}
+
+.block-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-on {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.btn-quiet {
+  border-color: transparent;
+}
+
+.block-editor {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  max-width: var(--measure);
+}
+
+.block-editor label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.block-editor .block-editor-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.block-editor .block-editor-check input {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+.block-editor input,
+.block-editor textarea {
+  font: inherit;
+  padding: 0.5rem 0.7rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.block-editor input:focus,
+.block-editor textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* --- habit calendar ---------------------------------------------------- */
+
+.calendar {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.cal-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--muted);
+}
+
+.cal-done {
+  fill: var(--accent);
+  background: var(--accent);
+}
+
+.cal-missed {
+  fill: var(--muted);
+  background: var(--muted);
+  opacity: 0.55;
+}
+
+.cal-skip {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  background: transparent;
+  border: 1.5px solid var(--muted);
+}
+
+.cal-empty {
+  fill: var(--grid);
+  background: var(--grid);
+}
+
+/* Roomy calendar for short habits: weekday columns, a date and a mark per day. */
+.daygrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 4.75rem));
+  gap: 0.3rem;
+}
+
+.day-head {
+  text-align: center;
+  margin-bottom: 0.1rem;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 1 / 0.85;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.day-void {
+  visibility: hidden;
+}
+
+.day-num {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.day-mark {
+  align-self: center;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Reuse the heatmap's status colours, as backgrounds rather than SVG fills. */
+.day.cal-done {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.day.cal-missed {
+  opacity: 1;
+  background: var(--grid);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.day.cal-skip {
+  background: transparent;
+  border: 1.5px dashed var(--muted);
+  color: var(--muted);
+}
+
+.day.cal-empty {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.4rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cal-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 0.3rem;
+  vertical-align: -1px;
+  box-sizing: border-box;
+}
+
+.other-habits-calendar {
+  margin-top: 0.5rem;
+}
+
+.other-habits-calendar > summary {
+  cursor: pointer;
+}
+
+/* --- habits without a story yet (dashboard) ------------------------------ */
+
+.other-habits > .meta {
+  margin: 0;
+}
+
+.other-habits-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.other-habits-filters input,
+.other-habits-filters select {
+  font: inherit;
+  padding: 0.45rem 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.other-habits-filters input {
+  flex: 1 1 14rem;
+}
+
+.other-habits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.other-habits-list > li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.other-habits-list .block-controls {
+  margin-top: 0.5rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.other-habits-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
 /* Tables (e.g. the habits list) can genuinely be wider than the card on a
    narrow screen, so they keep a scrollable wrapper. */
 .chart-wrap {
@@ -285,6 +699,25 @@ details.sql pre {
 .gate button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.logout {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+}
+
+.logout button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.logout button:hover {
+  color: var(--text);
 }
 
 .ghost-btn {

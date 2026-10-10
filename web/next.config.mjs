@@ -22,6 +22,11 @@ if (existsSync(envPath)) {
 }
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  // Pin the project root to this folder. Without it, Next walks up looking for
+  // lockfiles, finds an unrelated one in a parent directory, and treats that
+  // directory as the workspace.
+  outputFileTracingRoot: here,
+};
 
 export default nextConfig;

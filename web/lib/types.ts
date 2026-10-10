@@ -46,6 +46,65 @@ export interface InsightMetrics {
   [key: string]: unknown;
 }
 
+export type BlockKind = "habit_story" | "stat";
+
+export type HabitStatus = "active" | "archived" | "removed_from_app";
+
+export interface HabitEvent {
+  event:
+    | "first_seen"
+    | "archived"
+    | "unarchived"
+    | "removed_from_app"
+    | "restored_to_app";
+  /** The day the sync noticed it, not the day it happened in Loop. */
+  on: string;
+}
+
+/**
+ * The snapshot behind a block. Habit stories use everything except `value`;
+ * headline stats use only `value`. It never carries the habit's real name:
+ * the public wording lives in the block's `title`.
+ */
+export interface BlockPayload {
+  value?: number | string | null;
+  status?: HabitStatus;
+  firstEntry?: string | null;
+  lastEntry?: string | null;
+  entries?: number;
+  completionPct?: number | null;
+  how?: {
+    valueType: string;
+    targetType: string | null;
+    targetValue: number | null;
+    unit: string | null;
+    freqNum: number | null;
+    freqDen: number | null;
+  };
+  events?: HabitEvent[];
+  /** One character per day from `start`: y done, n not done, s skipped, . nothing. */
+  calendar?: { start: string; days: string };
+}
+
+/** A block exactly as the public view exposes it: no habit id, no slug. */
+export interface SiteBlock {
+  id: number;
+  kind: BlockKind;
+  title: string;
+  /** The owner's note: why the habit began or ended. May be empty. */
+  body: string;
+  payload: BlockPayload;
+  sortDate: string | null;
+  /** The owner's decision that this habit is over, whatever the app says. */
+  retired: boolean;
+}
+
+export interface PrivateSiteBlock extends SiteBlock {
+  slug: string;
+  habitId: number | null;
+  isPublic: boolean;
+}
+
 export interface DashboardStats {
   habits: number;
   repetitions: number;

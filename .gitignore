@@ -245,3 +245,6 @@ out/
 .vercel/
 next-env.d.ts
 *.tsbuildinfo
+
+# Claude Code local settings and dev-preview config (machine-specific)
+.claude/

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Habits: three years of data",
+  title: "Dear habits…",
   description:
-    "Analyses drawn from three years of daily habit tracking: sleep, consistency, and follow-through.",
+    "A habit journal, written as letters to the daily habits I've tracked since 2023: when each began, how it went, and why it faded or ended.",
 };
 
 export default function RootLayout({

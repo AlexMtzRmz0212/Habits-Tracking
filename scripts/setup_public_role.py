@@ -82,9 +82,17 @@ def verify(public_url: str) -> bool:
             print(f"  [FAIL] cannot read v_insights_public: {exc}")
             ok = False
 
+        try:
+            n = conn.execute("SELECT count(*) FROM v_site_public").fetchone()[0]
+            print(f"  [pass] can read published site blocks ({n} visible)")
+        except Exception as exc:
+            print(f"  [FAIL] cannot read v_site_public: {exc}")
+            ok = False
+
         # Must all fail. A success here means raw data is reachable publicly.
         for table in ("habits", "repetitions", "scores", "derived_metrics",
-                      "metric_catalog", "insights"):
+                      "metric_catalog", "insights", "site_blocks",
+                      "habit_events"):
             conn.rollback()
             try:
                 conn.execute(f"SELECT * FROM {table} LIMIT 1").fetchone()
@@ -154,7 +162,7 @@ def main() -> None:
 
     if verify(public_url):
         print("\nBoundary verified. The public role can read published analyses "
-              "and nothing else.")
+              "and site blocks, and nothing else.")
     else:
         sys.exit("\nVerification FAILED. Do not deploy the web app until this passes.")
 

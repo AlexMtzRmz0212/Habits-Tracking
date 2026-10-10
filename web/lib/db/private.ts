@@ -19,7 +19,11 @@ import "server-only";
 
 import { neon } from "@neondatabase/serverless";
 import { isUnlocked } from "@/lib/session";
-import type { DashboardStats, PrivateInsight } from "@/lib/types";
+import type {
+  DashboardStats,
+  PrivateInsight,
+  PrivateSiteBlock,
+} from "@/lib/types";
 
 export class LockedError extends Error {
   constructor() {
@@ -69,6 +73,67 @@ export async function getAllInsights(): Promise<PrivateInsight[]> {
     ORDER BY is_public DESC, kind, slug
   `;
   return rows.map(toPrivateInsight);
+}
+
+function asDate(value: unknown): string | null {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return value ? String(value) : null;
+}
+
+/** Every site block, published or not, in the order the public page uses. */
+export async function getAllBlocks(): Promise<PrivateSiteBlock[]> {
+  const sql = await requireUnlocked();
+  const rows = await sql`
+    SELECT id, slug, kind, habit_id, title, body, payload, sort_date,
+           is_public, retired
+    FROM site_blocks
+    ORDER BY sort_date ASC NULLS FIRST, id
+  `;
+  return rows.map((row: any) => ({
+    id: row.id,
+    slug: row.slug,
+    kind: row.kind,
+    habitId: row.habit_id ?? null,
+    title: row.title,
+    body: row.body ?? "",
+    payload: row.payload ?? {},
+    sortDate: asDate(row.sort_date),
+    isPublic: row.is_public,
+    retired: row.retired,
+  }));
+}
+
+/** Show or hide one block on the public site. Returns false if it doesn't exist. */
+export async function setBlockVisibility(
+  id: number,
+  isPublic: boolean
+): Promise<boolean> {
+  const sql = await requireUnlocked();
+  const rows = await sql`
+    UPDATE site_blocks
+       SET is_public = ${isPublic}, updated_at = now()
+     WHERE id = ${id}
+    RETURNING id
+  `;
+  return rows.length > 0;
+}
+
+/** Edit a block's public wording (title, the "why" note) and whether it is retired. */
+export async function setBlockText(
+  id: number,
+  title: string,
+  body: string,
+  retired: boolean
+): Promise<boolean> {
+  const sql = await requireUnlocked();
+  const rows = await sql`
+    UPDATE site_blocks
+       SET title = ${title}, body = ${body}, retired = ${retired},
+           updated_at = now()
+     WHERE id = ${id}
+    RETURNING id
+  `;
+  return rows.length > 0;
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {

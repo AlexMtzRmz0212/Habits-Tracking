@@ -10,6 +10,10 @@ Loop, and must never touch is_public or category_id. Those are curated by hand
 sync would silently un-curate every habit -- and, because is_public defaults to
 false, would quietly unpublish the portfolio instead of leaking. Still wrong,
 just wrong in the safe direction.
+
+SECOND RULE: nothing here deletes a habit or its entries. A habit you delete in
+Loop is simply absent from the next backup; it stays in Postgres (and on the
+website) and is marked removed_from_app_at by apply_lifecycle.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from typing import Iterable, Sequence
 import psycopg
 
 from pipeline.ingest.loader import Habit, Repetition
+from pipeline.lifecycle import KnownHabit, plan_events
 
 # Loop-sourced columns only. is_public and category_id are conspicuously absent.
 _UPSERT_HABITS = """
@@ -78,6 +83,64 @@ def upsert_habits(conn: psycopg.Connection, habits: Sequence[Habit]) -> dict[str
         # the rows this statement touched.
         cur.execute("SELECT loop_uuid, id FROM habits")
         return {uuid: hid for uuid, hid in cur.fetchall()}
+
+
+def snapshot_habit_state(conn: psycopg.Connection) -> dict[str, KnownHabit]:
+    """What the database believes about each habit, BEFORE this sync.
+
+    Must be taken before upsert_habits, which overwrites `archived`: once that
+    has run, a change in the flag can no longer be seen.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT loop_uuid, archived, removed_from_app_at IS NOT NULL FROM habits"
+        )
+        return {
+            uuid: KnownHabit(archived=archived, removed=removed)
+            for uuid, archived, removed in cur.fetchall()
+        }
+
+
+def apply_lifecycle(
+    conn: psycopg.Connection,
+    before: dict[str, KnownHabit],
+    habits: Sequence[Habit],
+    habit_ids: dict[str, int],
+    run_id: int,
+) -> list[tuple[str, str]]:
+    """Record what changed, and mark habits that left (or rejoined) the app.
+
+    Habits are never deleted here. A habit missing from the backup keeps its
+    row, its entries and its website story; it just gets removed_from_app_at.
+    """
+    incoming = {h.loop_uuid: h.archived for h in habits}
+    events = plan_events(before, incoming)
+
+    with conn.cursor() as cur:
+        if incoming:
+            cur.execute(
+                """
+                UPDATE habits
+                   SET last_seen_at = now(), removed_from_app_at = NULL
+                 WHERE loop_uuid = ANY(%s)
+                """,
+                (list(incoming),),
+            )
+
+        for uuid, event in events:
+            if event == "removed_from_app":
+                cur.execute(
+                    "UPDATE habits SET removed_from_app_at = now() WHERE loop_uuid = %s",
+                    (uuid,),
+                )
+            cur.execute(
+                """
+                INSERT INTO habit_events (habit_id, event, sync_run_id)
+                VALUES (%s, %s, %s)
+                """,
+                (habit_ids[uuid], event, run_id),
+            )
+    return events
 
 
 def upsert_repetitions(

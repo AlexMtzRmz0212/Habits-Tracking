@@ -122,7 +122,9 @@ def main() -> None:
             )
             conn.commit()
             try:
+                before = writer.snapshot_habit_state(conn)
                 habit_ids = writer.upsert_habits(conn, habits)
+                events = writer.apply_lifecycle(conn, before, habits, habit_ids, run_id)
                 written = writer.upsert_repetitions(conn, repetitions, habit_ids)
                 writer.finish_sync_run(conn, run_id, "success", rows_upserted=written)
                 conn.commit()
@@ -138,6 +140,9 @@ def main() -> None:
                 cur.execute("SELECT count(*) FROM repetitions")
                 n_reps = cur.fetchone()[0]
 
+        for _uuid, event in events:
+            if event != "first_seen":
+                print(f"Change: {event.replace('_', ' ')}")
         print(f"\nWrote : {written} repetitions")
         print(f"In db : {n_habits} habits, {n_reps} repetitions")
     finally:

@@ -1,9 +1,10 @@
-"""Recompute derived metrics and analyses.
+"""Recompute derived metrics, analyses and the website's story blocks.
 
     python -m pipeline.run_analyze
 
-Safe to re-run: derived metrics are upserted by date, and analyses are
-upserted by slug. Nothing you have published gets unpublished.
+Safe to re-run: derived metrics are upserted by date, and analyses and blocks
+are upserted by slug. Nothing you have published gets unpublished, and the
+wording you wrote on a story is never overwritten.
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ def main() -> None:
     except ImportError:
         sys.exit("psycopg is not installed. Run: pip install -r requirements.txt")
 
-    from pipeline.analytics import derive, stats
+    from pipeline.analytics import derive, stats, stories
 
     print(f"Database: {urlparse(url).hostname}")
 
@@ -42,6 +43,9 @@ def main() -> None:
 
         print("\nAnalyses:")
         n = stats.run_all(conn)
+
+        print("\nSite blocks:")
+        stories.run_all(conn)
         conn.commit()
 
         total, public = conn.execute(

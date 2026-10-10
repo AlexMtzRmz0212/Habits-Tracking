@@ -1,15 +1,22 @@
 import Link from "next/link";
 
 import InsightCard from "@/components/InsightCard";
+import SiteBlocks from "@/components/SiteBlocks";
 import StoryTimeline from "@/components/StoryTimeline";
-import { getPublishedInsights } from "@/lib/db/public";
+import Tabs from "@/components/Tabs";
+import { getPublicBlocks, getPublishedInsights } from "@/lib/db/public";
 
-// Analyses are recomputed weekly by the pipeline, so serving a cached render
-// for an hour is plenty fresh and keeps the database out of the hot path.
+// The pipeline refreshes everything daily, so a cached render for an hour is
+// plenty fresh and keeps the database out of the hot path. Showing or hiding a
+// block in the dashboard calls revalidatePath("/"), so those changes are
+// immediate.
 export const revalidate = 3600;
 
 export default async function PublicPage() {
-  const insights = await getPublishedInsights();
+  const [blocks, insights] = await Promise.all([
+    getPublicBlocks(),
+    getPublishedInsights(),
+  ]);
 
   return (
     <main className="shell">
@@ -39,32 +46,52 @@ export default async function PublicPage() {
             <path d="M8 11V7a4 4 0 0 1 8 0v4" />
           </svg>
         </Link>
-        <p className="meta">Personal data project</p>
-        <h1>Three years of habit tracking</h1>
+        <p className="meta">A habit journal · since January 2023</p>
+        <h1>Dear habits…</h1>
         <p className="lede">
-          Daily habits, logged since January 2023: sleep, routine, study,
-          chores. Analysed with a Python pipeline and Postgres. The records
-          stay private, the findings don&apos;t.
+          A letter to the things I tried to do every day: sleep, routine,
+          study, chores. Some stuck, some faded, some I let go. The daily
+          records stay private; the story is here.
         </p>
       </header>
 
       <StoryTimeline />
 
-      {insights.length === 0 ? (
-        <div className="empty">
-          <p>No analyses have been published yet.</p>
-          <p>
-            Publish one with <code>python scripts/publish.py add &lt;slug&gt;</code>
-          </p>
-        </div>
-      ) : (
-        insights.map((insight) => (
-          <InsightCard key={insight.id} insight={insight} />
-        ))
-      )}
+      <Tabs
+        tabs={[
+          {
+            id: "stats",
+            label: "Stats",
+            content: (
+              <>
+                <SiteBlocks
+                  blocks={blocks}
+                  kind="stat"
+                  empty={insights.length === 0 ? "Nothing to report yet." : undefined}
+                />
+                {insights.map((insight) => (
+                  <InsightCard key={insight.id} insight={insight} />
+                ))}
+              </>
+            ),
+          },
+          {
+            id: "stories",
+            label: "Stories",
+            content: (
+              <SiteBlocks
+                blocks={blocks}
+                kind="habit_story"
+                empty="No entries yet. I'm still finding the words. Check back soon."
+              />
+            ),
+          },
+        ]}
+      />
 
-      <footer className="meta" style={{ marginTop: "3rem" }}>
-        Loop Habit Tracker → Python → Postgres → Next.js
+      <footer style={{ marginTop: "3rem" }}>
+        <p className="signoff">Yours truly,</p>
+        <p className="meta">Loop Habit Tracker → Python → Postgres → Next.js</p>
       </footer>
     </main>
   );
