@@ -21,7 +21,7 @@ export default function InsightCard({
   return (
     <article className="card">
       <span className="tag">{insight.kind}</span>
-      <h2>{insight.title}</h2>
+      <h3>{insight.title}</h3>
       <p>{insight.narrative}</p>
 
       {summary && (

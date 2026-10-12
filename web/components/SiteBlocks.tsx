@@ -122,9 +122,8 @@ export default function SiteBlocks({ blocks, kind, controls, empty }: Props) {
                       <span className={`tag${status !== "active" ? " tag-muted" : ""}`}>
                         {STATUS_LABEL[status]}
                       </span>
-                      <h2>{block.title}</h2>
-                      {span && <div className="meta timeline-span">{span}</div>}
-                    </summary>
+                      <h3>{block.title}</h3>
+                      {span && <div className="meta timeline-span">{span}</div>}                    </summary>
                     {parts.map((part, i) =>
                       part.calendar ? (
                         <div key={i}>{calendar}</div>
@@ -137,7 +136,11 @@ export default function SiteBlocks({ blocks, kind, controls, empty }: Props) {
                       )
                     )}
                     {facts.length > 0 && (
-                      <p className="timeline-facts">{facts.join(" · ")}</p>
+                      <p className="timeline-facts">
+                        {facts.map((fact) => (
+                          <span key={fact}>{fact}</span>
+                        ))}
+                      </p>
                     )}
                     {!calendarPlaced && calendar}
                     {lifecycle.length > 0 && (

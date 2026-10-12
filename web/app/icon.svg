@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- A leather diary seen from the front: oxblood cover, dark spine, brass clasp, red ribbon. -->
+  <rect x="5" y="2" width="23" height="28" rx="2.5" fill="#5a2418"/>
+  <rect x="5" y="2" width="5" height="28" rx="2.5" fill="#3b2416"/>
+  <rect x="7.5" y="4.5" width="18" height="23" rx="1.5" fill="none" stroke="#d6b87c" stroke-width="0.9" stroke-dasharray="2 1.6"/>
+  <path d="M28 14.2h-8.5v3.6H28z" fill="#3b2416"/>
+  <rect x="17.6" y="12.2" width="5.2" height="7.6" rx="1.3" fill="#b08d3c" stroke="#7d6226" stroke-width="0.7"/>
+  <circle cx="20.2" cy="15.1" r="1.1" fill="#4a3612"/>
+  <rect x="19.8" y="15.6" width="0.8" height="2.4" rx="0.4" fill="#4a3612"/>
+  <path d="M13 28.5h3.4v3.3l-1.7-1.2-1.7 1.2z" fill="#a5402d"/>
+</svg>

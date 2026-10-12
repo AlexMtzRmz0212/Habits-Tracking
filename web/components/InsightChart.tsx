@@ -6,162 +6,83 @@
  * The pipeline writes whatever its analysis needs, so rather than hard-coding
  * one component per analysis, this reads the keys and renders accordingly.
  * Adding an analysis that emits `series` gets a chart for free.
+ *
+ * Each chart gets one scribbled note on its tallest point, worded neutrally
+ * ("peak", "most nights") because the data alone cannot say whether high is good.
  */
 
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import RoughChart, { type ChartRow, type RoughSpec } from "@/components/RoughChart";
 import type { InsightMetrics } from "@/lib/types";
 
-const ACCENT = "#b5643c";
-const GRID = "rgba(128,128,128,0.18)";
+const plain = (v: number) => v.toLocaleString("en-US");
 
-const axis = {
-  stroke: "currentColor",
-  fontSize: 11,
-  tickLine: false,
-  opacity: 0.55,
-};
-
-function Frame({
-  children,
-  height = 240,
-}: {
-  children: React.ReactElement;
-  height?: number;
-}) {
-  return (
-    <div className="chart-frame">
-      <div style={{ width: "100%", height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          {children}
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
+function indexOfMax(rows: ChartRow[], key: string): number {
+  let best = 0;
+  rows.forEach((row, i) => {
+    if (Number(row[key]) > Number(rows[best][key])) best = i;
+  });
+  return best;
 }
 
 export default function InsightChart({ metrics }: { metrics: InsightMetrics }) {
   // A rolling average over time: the smoothed line is the readable one.
   if (Array.isArray(metrics.rolling_30) && metrics.rolling_30.length > 1) {
-    const data = metrics.rolling_30;
-    return (
-      <Frame>
-        <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
-          <defs>
-            <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={ACCENT} stopOpacity={0.35} />
-              <stop offset="100%" stopColor={ACCENT} stopOpacity={0.02} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid stroke={GRID} vertical={false} />
-          <XAxis
-            dataKey="date"
-            {...axis}
-            minTickGap={48}
-            tickFormatter={(v: string) => v.slice(0, 7)}
-          />
-          <YAxis {...axis} width={44} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
-          <Tooltip
-            contentStyle={{ fontSize: 12, borderRadius: 8 }}
-            formatter={(v: number) => [`${v} h`, "30-night average"]}
-          />
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke={ACCENT}
-            strokeWidth={2}
-            fill="url(#fade)"
-          />
-        </AreaChart>
-      </Frame>
-    );
+    const data = metrics.rolling_30.map((r) => ({ ...r, label: String(r.date).slice(0, 7) }));
+    const spec: RoughSpec = {
+      kind: "line",
+      area: true,
+      series: [{ key: "value", label: "30-night average" }],
+      data,
+      format: (v) => `${plain(Math.round(v * 10) / 10)}h`,
+      xFormat: (l) => l,
+      height: 240,
+      label: "Thirty-night rolling average of sleep over time",
+      annotation: { index: indexOfMax(data, "value"), text: "peak" },
+      tipTitle: (row) => String(row.date),
+    };
+    return <RoughChart spec={spec} />;
   }
 
   // A distribution.
   if (Array.isArray(metrics.histogram) && metrics.histogram.length > 1) {
-    return (
-      <Frame>
-        <BarChart
-          data={metrics.histogram}
-          margin={{ top: 4, right: 8, bottom: 0, left: -18 }}
-        >
-          <CartesianGrid stroke={GRID} vertical={false} />
-          <XAxis dataKey="hours" {...axis} tickFormatter={(v: number) => `${v}h`} />
-          <YAxis {...axis} width={44} />
-          <Tooltip
-            contentStyle={{ fontSize: 12, borderRadius: 8 }}
-            formatter={(v: number) => [`${v} nights`, ""]}
-            labelFormatter={(v) => `${v} hours`}
-          />
-          <Bar dataKey="nights" fill={ACCENT} radius={[3, 3, 0, 0]} />
-        </BarChart>
-      </Frame>
-    );
+    const data = metrics.histogram.map((r) => ({ ...r, label: `${r.hours}h` }));
+    const spec: RoughSpec = {
+      kind: "bar",
+      series: [{ key: "nights", label: "Nights" }],
+      data,
+      format: plain,
+      emphasis: "peak",
+      height: 240,
+      label: "How many nights fell at each sleep length",
+      annotation: { index: indexOfMax(data, "nights"), text: "most nights" },
+      tipTitle: (_row, label) => `${label} of sleep`,
+    };
+    return <RoughChart spec={spec} />;
   }
 
   // A generic series: find the label column and the first numeric column.
   if (Array.isArray(metrics.series) && metrics.series.length > 0) {
     const rows = metrics.series;
     const keys = Object.keys(rows[0]);
-    const labelKey =
-      keys.find((k) => typeof rows[0][k] === "string") ?? keys[0];
+    const labelKey = keys.find((k) => typeof rows[0][k] === "string") ?? keys[0];
     const valueKey =
-      keys.find((k) => k !== labelKey && typeof rows[0][k] === "number") ??
-      keys[1];
+      keys.find((k) => k !== labelKey && typeof rows[0][k] === "number") ?? keys[1];
     if (!valueKey) return null;
 
-    const values = rows.map((r) => Number(r[valueKey]));
-    const peak = Math.max(...values);
-
-    // With many categories, showing every tick just overlaps into mush.
-    // Space them out instead and tilt what's left so short labels stay
-    // legible without needing to scroll the chart to read them.
-    const crowded = rows.length > 10;
-
-    return (
-      <Frame height={crowded ? 260 : 240}>
-        <BarChart
-          data={rows}
-          margin={{ top: 4, right: 8, bottom: crowded ? 20 : 0, left: -18 }}
-        >
-          <CartesianGrid stroke={GRID} vertical={false} />
-          <XAxis
-            dataKey={labelKey}
-            {...axis}
-            interval={crowded ? "preserveStartEnd" : 0}
-            minTickGap={crowded ? 24 : undefined}
-            angle={crowded ? -35 : 0}
-            textAnchor={crowded ? "end" : "middle"}
-            height={crowded ? 40 : 30}
-            tickFormatter={(v: string) =>
-              typeof v === "string" && v.length > 9 ? v.slice(0, 3) : v
-            }
-          />
-          <YAxis {...axis} width={44} />
-          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-          <Bar dataKey={valueKey} radius={[3, 3, 0, 0]}>
-            {/* The largest bar carries the point, so let it read louder. */}
-            {rows.map((_, i) => (
-              <Cell
-                key={i}
-                fill={ACCENT}
-                fillOpacity={values[i] === peak ? 1 : 0.55}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </Frame>
-    );
+    const data = rows.map((r) => ({ ...r, label: String(r[labelKey]) }));
+    const spec: RoughSpec = {
+      kind: "bar",
+      series: [{ key: valueKey, label: valueKey.replace(/_/g, " ") }],
+      data,
+      format: plain,
+      emphasis: "peak",
+      height: 240,
+      // Long names are cut to three letters, as before, so they fit under a bar.
+      xFormat: (l) => (l.length > 9 ? l.slice(0, 3) : l),
+      label: `${valueKey.replace(/_/g, " ")} by ${labelKey.replace(/_/g, " ")}`,
+      annotation: { index: indexOfMax(data, valueKey), text: "peak" },
+    };
+    return <RoughChart spec={spec} />;
   }
 
   return null;

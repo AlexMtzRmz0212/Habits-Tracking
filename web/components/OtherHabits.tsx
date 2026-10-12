@@ -124,7 +124,9 @@ export default function OtherHabits({ habits }: { habits: OtherHabit[] }) {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search habits"
+          name="search"
+          placeholder="Search habits…"
+          autoComplete="off"
           aria-label="Search habits"
         />
         <select
