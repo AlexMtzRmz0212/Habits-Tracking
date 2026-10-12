@@ -85,7 +85,7 @@ export async function getAllBlocks(): Promise<PrivateSiteBlock[]> {
   const sql = await requireUnlocked();
   const rows = await sql`
     SELECT id, slug, kind, habit_id, title, body, payload, sort_date,
-           is_public, retired
+           is_public, retired, figures
     FROM site_blocks
     ORDER BY sort_date ASC NULLS FIRST, id
   `;
@@ -100,6 +100,7 @@ export async function getAllBlocks(): Promise<PrivateSiteBlock[]> {
     sortDate: asDate(row.sort_date),
     isPublic: row.is_public,
     retired: row.retired,
+    figures: row.figures ?? [],
   }));
 }
 

@@ -45,7 +45,7 @@ function toInsight(row: any): PublicInsight {
 export async function getPublicBlocks(): Promise<SiteBlock[]> {
   const sql = publicSql();
   const rows = await sql`
-    SELECT id, kind, title, body, payload, sort_date, retired
+    SELECT id, kind, title, body, payload, sort_date, retired, figures
     FROM v_site_public
     ORDER BY sort_date ASC NULLS FIRST, id
   `;
@@ -57,6 +57,7 @@ export async function getPublicBlocks(): Promise<SiteBlock[]> {
     payload: row.payload ?? {},
     sortDate: asDate(row.sort_date),
     retired: row.retired,
+    figures: row.figures ?? [],
   }));
 }
 

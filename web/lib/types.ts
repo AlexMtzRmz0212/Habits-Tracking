@@ -86,6 +86,42 @@ export interface BlockPayload {
   calendar?: { start: string; days: string };
 }
 
+/** One number with its label, in a row of stats. */
+export interface FigureStat {
+  value: string;
+  label: string;
+}
+
+/** A small precomputed chart. Values are plain numbers; `format` says how to print them. */
+export interface ChartFigure {
+  id: string;
+  type: "chart";
+  kind: "bar" | "line";
+  title: string;
+  caption?: string;
+  /** How a value is shown: "percent" (42%), "clock" (hours after midnight -> 01:30), "number". */
+  format?: "percent" | "clock" | "number";
+  /** One entry per series; a single series may colour bars by `emphasis`. */
+  series: Array<{ key: string; label: string }>;
+  data: Array<Record<string, string | number | boolean>>;
+  /** A horizontal reference line, e.g. the goal. */
+  ref?: { value: number; label: string };
+  yDomain?: [number, number];
+  /** Explicit y-axis ticks, for when the automatic ones land on awkward values. */
+  yTicks?: number[];
+  /** Shown in the tooltip, e.g. "nights". Reads the `n` field of each row. */
+  nLabel?: string;
+}
+
+export interface StatsFigure {
+  id: string;
+  type: "stats";
+  items: FigureStat[];
+}
+
+/** Something placed between a story's paragraphs with a `[[id]]` line. */
+export type StoryFigure = ChartFigure | StatsFigure;
+
 /** A block exactly as the public view exposes it: no habit id, no slug. */
 export interface SiteBlock {
   id: number;
@@ -97,6 +133,8 @@ export interface SiteBlock {
   sortDate: string | null;
   /** The owner's decision that this habit is over, whatever the app says. */
   retired: boolean;
+  /** Charts and stat rows for the story, placed by `[[id]]` lines in `body`. */
+  figures?: StoryFigure[];
 }
 
 export interface PrivateSiteBlock extends SiteBlock {

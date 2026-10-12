@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import HabitCalendar from "@/components/HabitCalendar";
+import StoryFigureView from "@/components/StoryFigure";
 import {
   STATUS_LABEL,
   effectiveStatus,
@@ -10,7 +11,7 @@ import {
   numbersLine,
   spanLine,
 } from "@/lib/story";
-import type { SiteBlock } from "@/lib/types";
+import type { SiteBlock, StoryFigure } from "@/lib/types";
 
 /**
  * One tab of the website's story: the headline stats, or one entry per habit
@@ -31,6 +32,28 @@ interface Props {
   controls?: (block: Block) => ReactNode;
   /** Shown instead when there is nothing of this kind to render. */
   empty?: string;
+}
+
+/**
+ * A story's body, cut into paragraphs, figures and the habit's calendar.
+ *
+ * Paragraphs are separated by blank lines. A paragraph that is just `[[id]]`
+ * is replaced by the figure with that id; one naming a figure that doesn't
+ * exist is dropped rather than shown as stray brackets. `[[calendar]]` places
+ * the habit's calendar instead of the figure with that name.
+ */
+function storyParts(block: Block) {
+  const figures = new Map((block.figures ?? []).map((f) => [f.id, f]));
+  const parts: Array<{ text?: string; figure?: StoryFigure; calendar?: true }> = [];
+  for (const raw of (block.body ?? "").split(/\n\s*\n/)) {
+    const text = raw.trim();
+    if (!text) continue;
+    const marker = /^\[\[([\w-]+)\]\]$/.exec(text);
+    if (!marker) parts.push({ text });
+    else if (marker[1] === "calendar") parts.push({ calendar: true });
+    else if (figures.has(marker[1])) parts.push({ figure: figures.get(marker[1]) });
+  }
+  return parts;
 }
 
 function statValue(value: unknown): string {
@@ -75,6 +98,15 @@ export default function SiteBlocks({ blocks, kind, controls, empty }: Props) {
             const span = spanLine(payload, status);
             const facts = [howLine(payload), numbersLine(payload)].filter(Boolean);
             const lifecycle = lifecycleLines(payload);
+            const parts = storyParts(block);
+            // Where the story doesn't place the calendar itself, it follows the text.
+            const calendarPlaced = parts.some((part) => part.calendar);
+            const calendar = payload.calendar && (
+              <HabitCalendar
+                start={payload.calendar.start}
+                days={payload.calendar.days}
+              />
+            );
 
             return (
               <li
@@ -82,28 +114,40 @@ export default function SiteBlocks({ blocks, kind, controls, empty }: Props) {
                 className={`timeline-item${block.isPublic === false ? " is-hidden" : ""}`}
               >
                 <div className="timeline-card">
-                  <span className={`tag${status !== "active" ? " tag-muted" : ""}`}>
-                    {STATUS_LABEL[status]}
-                  </span>
-                  <h2>{block.title}</h2>
-                  {span && <p className="meta timeline-span">{span}</p>}
-                  {block.body && <p className="timeline-note">{block.body}</p>}
-                  {facts.length > 0 && (
-                    <p className="timeline-facts">{facts.join(" · ")}</p>
-                  )}
-                  {payload.calendar && (
-                    <HabitCalendar
-                      start={payload.calendar.start}
-                      days={payload.calendar.days}
-                    />
-                  )}
-                  {lifecycle.length > 0 && (
-                    <ul className="timeline-events">
-                      {lifecycle.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  )}
+                  {/* A native <details>: collapsed by default, and a click on the
+                      header unfolds the story. Controls sit outside it so they
+                      stay reachable. */}
+                  <details className="story-fold">
+                    <summary>
+                      <span className={`tag${status !== "active" ? " tag-muted" : ""}`}>
+                        {STATUS_LABEL[status]}
+                      </span>
+                      <h2>{block.title}</h2>
+                      {span && <div className="meta timeline-span">{span}</div>}
+                    </summary>
+                    {parts.map((part, i) =>
+                      part.calendar ? (
+                        <div key={i}>{calendar}</div>
+                      ) : part.figure ? (
+                        <StoryFigureView key={i} figure={part.figure} />
+                      ) : (
+                        <p key={i} className="timeline-note">
+                          {part.text}
+                        </p>
+                      )
+                    )}
+                    {facts.length > 0 && (
+                      <p className="timeline-facts">{facts.join(" · ")}</p>
+                    )}
+                    {!calendarPlaced && calendar}
+                    {lifecycle.length > 0 && (
+                      <ul className="timeline-events">
+                        {lifecycle.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </details>
                   {controls?.(block)}
                 </div>
               </li>

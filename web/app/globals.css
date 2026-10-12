@@ -319,6 +319,51 @@ body {
   margin: 0 0 0.75rem;
 }
 
+/* Collapsible story: the header is the toggle, a chevron shows its state. */
+.story-fold > summary {
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+  padding-right: 1.75rem;
+}
+
+.story-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.story-fold > summary::after {
+  content: "";
+  position: absolute;
+  right: 0.25rem;
+  top: 0.9rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.story-fold[open] > summary::after {
+  transform: rotate(-135deg);
+  top: 1.1rem;
+}
+
+/* Once unfolded, the header is separated from the story below it. */
+.story-fold[open] > summary {
+  margin-bottom: 0.25rem;
+}
+
+.story-fold > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.story-fold:not([open]) > summary .timeline-span {
+  margin-bottom: 0;
+}
+
 .timeline-note {
   margin: 0 0 0.75rem;
   max-width: var(--measure);
@@ -807,4 +852,62 @@ table.habits td.num {
 
 a {
   color: var(--accent);
+}
+
+/* --- story figures: stat rows and charts between a story's paragraphs ---- */
+
+.figure-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 1.25rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.figure-stats li {
+  padding-left: 0.85rem;
+  border-left: 3px solid var(--accent);
+}
+
+.figure-stat-value {
+  font-size: 1.9rem;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.figure-stat-label {
+  margin-top: 0.2rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.figure-chart {
+  margin: 1.25rem 0 1.5rem;
+  padding: 0.9rem 1rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.figure-title {
+  margin-bottom: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.figure-caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
 }

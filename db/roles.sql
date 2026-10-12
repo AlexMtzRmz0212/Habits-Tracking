@@ -38,7 +38,9 @@ WHERE is_public;
 -- Published site blocks (habit stories and headline stats). Again no habit_id
 -- and no slug: a story shows the title and wording you chose for the public,
 -- not which habit row it came from. The payload is a snapshot of dates and
--- counts, never the habit's own name or notes.
+-- counts, never the habit's own name or notes. `figures` are the charts and
+-- stat rows you chose to put in a story: precomputed aggregates, not entries.
+-- (New columns go last: that is all CREATE OR REPLACE VIEW allows.)
 CREATE OR REPLACE VIEW v_site_public AS
 SELECT id,
        kind,
@@ -46,7 +48,8 @@ SELECT id,
        body,
        payload,
        sort_date,
-       retired
+       retired,
+       figures
 FROM site_blocks
 WHERE is_public;
 
