@@ -33,11 +33,48 @@ _MM_SS = "MM:SS"
 TIME_UNITS = frozenset({_HH_MM, _MM_SS})
 
 
+# The user's fork of Loop has native time-of-day habits: "time of day" (10), "wake up" (11) and
+# "bedtime" (12). Their entries hold 1000 + minutes since midnight, so they never clash with the
+# boolean status codes. To the rest of the pipeline they are ordinary HH:MM numerical habits, which
+# the analyses and the site already understand.
+TIME_OF_DAY_TYPES = frozenset({10, 11, 12})
+TIME_OF_DAY_BASE = 1000
+
+
+def is_time_of_day_type(loop_type: int) -> bool:
+    return loop_type in TIME_OF_DAY_TYPES
+
+
+def time_of_day_to_hhmm(raw: int | None) -> int | None:
+    """A time-of-day entry (1000 + minutes) -> the stored HH:MM format of numerical habits.
+
+        1000 + 7*60 + 30 -> 7300 (07:30)       1000 -> 0 (00:00)       2 -> None (not a time)
+
+    Entries that do not hold a time (no, skip, unknown) become None, so they are never read as
+    midnight.
+    """
+    if raw is None or raw < TIME_OF_DAY_BASE:
+        return None
+    hours, minutes = divmod(raw - TIME_OF_DAY_BASE, 60)
+    return hours * NUMERIC_SCALE + minutes * 10
+
+
+def time_target_to_decimal(minutes: float | None) -> float | None:
+    """A time-of-day target in minutes since midnight -> the H.MM decimal HH:MM habits use.
+
+    480 (08:00) -> 8.0, 1410 (23:30) -> 23.3. Zero or missing means "no target".
+    """
+    if minutes is None or minutes <= 0:
+        return None
+    hours, mins = divmod(int(minutes), 60)
+    return round(hours + mins / 100, 2)
+
+
 def habit_type_to_value_type(loop_type: int) -> str:
     """Loop's Habits.type -> our value_type."""
     if loop_type == 0:
         return "boolean"
-    if loop_type == 1:
+    if loop_type == 1 or is_time_of_day_type(loop_type):
         return "numerical"
     raise ValueError(f"unknown Loop habit type: {loop_type!r}")
 

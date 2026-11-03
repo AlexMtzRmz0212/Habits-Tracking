@@ -32,6 +32,16 @@ Each export is a new timestamped file, so the folder builds up a backup
 history. The sync always takes the newest `.db` and ignores the others, so you
 can leave them or clear them out as you prefer.
 
+### Backups from the "My Habits" fork
+
+The fork's app can create three more habit types: **Time of day**, **Wake up**
+and **Bedtime** (Loop codes 10, 11 and 12). Each entry stores `1000 + minutes
+since midnight`. The sync loads them as ordinary `HH:MM` numerical habits, so
+nothing in the database or the site had to change: an entry of 07:30 arrives as
+7.5 fractional hours, and a "before 08:00" target arrives as `at_most` 8.0.
+Entries that hold no time (cleared days) arrive with no value rather than as
+midnight. Backups keep database version 26, so older exports still import.
+
 ### Deleting a habit in Loop
 
 Go ahead. The sync only ever adds and updates; it never deletes. A habit that

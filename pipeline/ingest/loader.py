@@ -41,6 +41,8 @@ class Habit:
     # Loop's local integer id. Needed to join repetitions during this import
     # only -- it is never stored, because it is not stable across exports.
     loop_local_id: int
+    # True for the fork's native time-of-day habits (time of day, wake up, bedtime).
+    is_time_of_day: bool = False
 
 
 @dataclass(frozen=True)
@@ -92,16 +94,27 @@ def read_habits(conn: sqlite3.Connection) -> list[Habit]:
             # safer than inventing one, which would duplicate the habit on the
             # next sync.
             continue
+        is_time_of_day = encoding.is_time_of_day_type(row["type"])
+        unit = row["unit"] or None
+        target_type = encoding.target_type_to_str(row["target_type"])
+        target_value = row["target_value"]
+        if is_time_of_day:
+            # Present it as an HH:MM habit, the way the user's older bedtime habits are stored.
+            unit = "HH:MM"
+            target_value = encoding.time_target_to_decimal(target_value)
+            if target_value is None:
+                target_type = None
         habits.append(
             Habit(
                 loop_uuid=uuid,
                 name=row["name"],
                 description=row["description"] or None,
                 question=row["question"] or None,
-                unit=row["unit"] or None,
+                unit=unit,
                 value_type=encoding.habit_type_to_value_type(row["type"]),
-                target_type=encoding.target_type_to_str(row["target_type"]),
-                target_value=row["target_value"],
+                target_type=target_type,
+                target_value=target_value,
+                is_time_of_day=is_time_of_day,
                 freq_num=row["freq_num"],
                 freq_den=row["freq_den"],
                 color=row["color"],
@@ -130,7 +143,8 @@ def read_repetitions(
             continue
 
         raw = row["value"]
-        value, status = encoding.decode_repetition(raw, habit.value_type, habit.unit)
+        decodable = encoding.time_of_day_to_hhmm(raw) if habit.is_time_of_day else raw
+        value, status = encoding.decode_repetition(decodable, habit.value_type, habit.unit)
 
         # Loop stores midnight of the entry's day, so reading it back in UTC
         # gives the intended calendar date. Using local time here would shift

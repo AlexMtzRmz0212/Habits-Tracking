@@ -46,7 +46,7 @@ export interface InsightMetrics {
   [key: string]: unknown;
 }
 
-export type BlockKind = "habit_story" | "stat";
+export type BlockKind = "habit_story" | "stat" | "graph";
 
 export type HabitStatus = "active" | "archived" | "removed_from_app";
 
@@ -84,6 +84,48 @@ export interface BlockPayload {
   events?: HabitEvent[];
   /** One character per day from `start`: y done, n not done, s skipped, . nothing. */
   calendar?: { start: string; days: string };
+
+  // Graph blocks (kind "graph") carry chart data instead of a story.
+  type?: "cadence" | "sleep";
+  /** cadence: ties one habit's graphs together; `chart` says which one this block is. */
+  group?: string;
+  chart?: "weeks" | "gaps" | "histogram";
+  /** cadence: the headline numbers behind the charts. */
+  summary?: CadenceSummary;
+  /** cadence: one entry per Monday-to-Sunday week, with how many days of it were done. */
+  weeks?: Array<{ week: string; done: number }>;
+  /** cadence: one entry per gap between done days, dated by the day it ended. */
+  gaps?: Array<{ date: string; days: number }>;
+  /** sleep: [date, hours asleep, bedtime, wake-up]; clock times in hours after midnight, negative = evening before. */
+  nights?: Array<[string, number, number, number]>;
+}
+
+export interface CadenceSummary {
+  weeksDone: number;
+  weeksTotal: number;
+  medianGap: number | null;
+  meanGap: number | null;
+  longestGap: number | null;
+}
+
+/** One graph of a weekly habit: its own block, so its own show/hide switch. */
+export interface CadencePart {
+  chart: "weeks" | "gaps" | "histogram";
+  summary: CadenceSummary;
+  weeks?: Array<{ week: string; done: number }>;
+  gaps?: Array<{ date: string; days: number }>;
+  /** Shown or hidden on the public site; only the dashboard passes `false`. */
+  isPublic?: boolean;
+  /** Dashboard only: what the show/hide switch needs. The public page omits it. */
+  block?: { id: number; isPublic: boolean; title: string; body: string; retired: boolean };
+}
+
+/** What the Graphs tab draws for one weekly habit: whichever of its graphs are present. */
+export interface CadenceChart {
+  /** Stable key, also the habit toggle's id. */
+  key: string;
+  habitName: string;
+  parts: CadencePart[];
 }
 
 /** One number with its label, in a row of stats. */
@@ -119,8 +161,28 @@ export interface StatsFigure {
   items: FigureStat[];
 }
 
+/**
+ * A definition shown as fractions: words over words, the same fraction in
+ * numbers, and the result. Used instead of a sentence like "done divided by
+ * done plus not done".
+ */
+export interface FormulaFigure {
+  id: string;
+  type: "formula";
+  title?: string;
+  caption?: string;
+  rows: Array<{
+    label: string;
+    top: string;
+    bottom: string;
+    topValues: string;
+    bottomValues: string;
+    result: string;
+  }>;
+}
+
 /** Something placed between a story's paragraphs with a `[[id]]` line. */
-export type StoryFigure = ChartFigure | StatsFigure;
+export type StoryFigure = ChartFigure | StatsFigure | FormulaFigure;
 
 /** A block exactly as the public view exposes it: no habit id, no slug. */
 export interface SiteBlock {

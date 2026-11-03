@@ -26,6 +26,11 @@ HOURS_PER_DAY = 24.0
 MIN_PLAUSIBLE_SLEEP = 2.0
 MAX_PLAUSIBLE_SLEEP = 16.0
 
+# A bedtime at or after this hour belongs to the evening before the date it is
+# recorded on; earlier ones are after midnight. 18:00 splits the two cleanly
+# for anyone who is not sleeping through the afternoon.
+EVENING_START = 18.0
+
 
 def sleep_duration_hours(bedtime: float | None, wake_time: float | None) -> float | None:
     """Hours slept, given a bedtime and the wake-up that followed it.
@@ -48,6 +53,18 @@ def sleep_duration_hours(bedtime: float | None, wake_time: float | None) -> floa
         # Wake-up reads earlier than bedtime, so the night crossed midnight.
         duration += HOURS_PER_DAY
     return duration
+
+
+def bedtime_offset(bedtime: float) -> float:
+    """A bedtime as hours after midnight, negative for the evening before.
+
+    Averages and charts need one continuous scale across midnight:
+
+        23:30 -> -0.5   (evening before)
+        00:30 ->  0.5
+        02:45 ->  2.75
+    """
+    return bedtime - HOURS_PER_DAY if bedtime >= EVENING_START else bedtime
 
 
 def is_plausible_sleep(hours: float | None) -> bool:

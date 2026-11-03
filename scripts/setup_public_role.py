@@ -89,10 +89,17 @@ def verify(public_url: str) -> bool:
             print(f"  [FAIL] cannot read v_site_public: {exc}")
             ok = False
 
+        try:
+            conn.execute("SELECT last_import_at FROM v_site_meta").fetchone()
+            print("  [pass] can read the last import date")
+        except Exception as exc:
+            print(f"  [FAIL] cannot read v_site_meta: {exc}")
+            ok = False
+
         # Must all fail. A success here means raw data is reachable publicly.
         for table in ("habits", "repetitions", "scores", "derived_metrics",
                       "metric_catalog", "insights", "site_blocks",
-                      "habit_events"):
+                      "habit_events", "sync_runs"):
             conn.rollback()
             try:
                 conn.execute(f"SELECT * FROM {table} LIMIT 1").fetchone()

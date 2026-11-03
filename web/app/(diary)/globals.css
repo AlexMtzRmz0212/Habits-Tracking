@@ -184,8 +184,7 @@ h3 {
 }
 
 .book[data-open="1"] .boards,
-html[data-open] .book .boards,
-.book-owner .boards {
+html[data-open] .book .boards {
   display: block;
 }
 
@@ -412,11 +411,6 @@ html[data-open] .book:not([data-swing]) .cover {
 }
 
 .cover-fade {
-  display: none;
-}
-
-/* Narrow screens have no room for a left page: the owner's book has no cover to show. */
-.book-owner .cover {
   display: none;
 }
 
@@ -758,6 +752,24 @@ html[data-open] .book:not([data-swing]) .cover {
 
 .masthead .meta {
   margin: 0;
+}
+
+/* The line is written at the top like a diary entry's date: right-aligned, in
+   the same hand as the margin notes but darker, as if inked fresh. */
+.masthead-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.diary-date {
+  margin: 0 0 0 auto;
+  font-family: var(--f-margin);
+  font-size: 1.2rem;
+  line-height: var(--rule);
+  color: var(--ink);
+  text-align: right;
 }
 
 .lede {
@@ -1951,8 +1963,7 @@ input[type="checkbox"]:checked {
 
   /* Open and at rest, the cover stays: turned over onto the left board. */
   .book[data-open="1"]:not([data-swing]) .cover,
-  html[data-open] .book:not([data-swing]) .cover,
-  .book.book-owner[data-open="1"]:not([data-swing]) .cover {
+  html[data-open] .book:not([data-swing]) .cover {
     display: block;
     z-index: 0;
     transform: rotateY(-180deg);
@@ -2019,4 +2030,202 @@ input[type="checkbox"]:checked {
   .rc-dot {
     opacity: 1;
   }
+}
+
+/* On a wide screen the left page already carries this line on its bookplate,
+   so the page itself only says it where there is no left page. */
+@media (min-width: 1200px) {
+  .masthead-since {
+    display: none;
+  }
+}
+
+/* --- formula figure -------------------------------------------------------- */
+
+.figure-formula {
+  margin: 1.25rem 0 1.5rem;
+  padding: 0.9rem 1rem 0.5rem;
+}
+
+.formula-row {
+  padding: 0.6rem 0 0.8rem;
+  border-top: 1px dashed currentColor;
+  border-top-color: rgba(120, 110, 100, 0.35);
+}
+
+.formula-row:first-of-type {
+  border-top: 0;
+}
+
+.formula-label {
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.formula-math {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+}
+
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.frac-top {
+  padding: 0 0.4rem 0.15rem;
+  border-bottom: 2px solid currentColor;
+}
+
+.frac-bottom {
+  padding: 0.15rem 0.4rem 0;
+}
+
+.formula-eq {
+  opacity: 0.6;
+}
+
+.formula-result {
+  font-size: 1.5rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- graphs and sleep (the same components the dashboard draws) -------------- */
+
+.btn {
+  font-family: var(--f-crayon);
+  font-size: 1.05rem;
+  line-height: 1.5rem;
+  padding: 0.05rem 0.8rem;
+  color: var(--blue-ink);
+  background: transparent;
+  border: 2px solid var(--blue-ink);
+  border-radius: var(--hand);
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-on {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: rgba(201, 154, 46, 0.35);
+}
+
+.sleep-controls,
+.graph-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1.2rem;
+  margin: 0.5rem 0 1.25rem;
+}
+
+.sleep-periods,
+.sleep-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sleep-anchor {
+  min-width: 8rem;
+  text-align: center;
+}
+
+.sleep-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sleep-asleep { fill: var(--blue-ink); background: var(--blue-ink); }
+.sleep-awake { fill: rgba(201, 154, 46, 0.28); background: rgba(201, 154, 46, 0.28); }
+.sleep-none { fill: none; stroke: rgba(58, 79, 107, 0.3); stroke-dasharray: 2 4; }
+.sleep-grid { stroke: rgba(58, 79, 107, 0.22); stroke-width: 1; }
+
+.sleep-tick,
+.sleep-value,
+.graph-ref {
+  font-family: var(--f-crayon);
+  font-size: 12px;
+  fill: var(--blue-ink);
+}
+
+.sleep-value { fill: var(--paper-light); }
+
+.graph-ref {
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--paper-light);
+  stroke-width: 3px;
+}
+
+.sleep-legend,
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.1rem;
+  margin: 0.6rem 0 0;
+  font-family: var(--f-margin);
+  font-size: 1.1rem;
+  line-height: 1.5rem;
+  color: var(--blue-ink);
+}
+
+.sleep-key {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 0.3rem;
+  vertical-align: -1px;
+  border-radius: 3px;
+}
+
+.graph { margin: 1.25rem 0 1.75rem; }
+
+.graph-title {
+  margin: 0 0 0.4rem;
+  font-family: var(--f-crayon);
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.graph-done { fill: var(--forest); background: var(--forest); }
+.graph-late { fill: var(--mustard, #c99a2e); background: var(--mustard, #c99a2e); }
+.graph-missed { fill: rgba(165, 64, 45, 0.18); background: rgba(165, 64, 45, 0.35); }
+
+.graph-median,
+.graph-mean { stroke: var(--ink); stroke-width: 1.5; }
+.graph-median { stroke-dasharray: 6 4; }
+.graph-mean { stroke-dasharray: 1 4; stroke-linecap: round; }
+
+/* Line keys in the graph legends: the same dash style as the line on the chart. */
+.graph-line-key {
+  display: inline-block;
+  width: 1.6rem;
+  margin-right: 0.35rem;
+  vertical-align: 0.2em;
+  border-top: 2px solid var(--ink);
+}
+
+.graph-line-median { border-top-style: dashed; }
+.graph-line-mean { border-top-style: dotted; }
+
+.graph-part.is-hidden {
+  padding: 0.5rem 1rem 0.75rem;
+  border-radius: 0.4rem;
 }

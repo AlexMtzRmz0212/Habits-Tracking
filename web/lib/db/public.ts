@@ -2,8 +2,8 @@
  * The public data path.
  *
  * Connects with DATABASE_URL_PUBLIC, which is the habits_public_ro role. That
- * role has SELECT on exactly two views -- v_insights_public and v_site_public
- * -- and no grants at all on habits, repetitions, scores, derived_metrics,
+ * role has SELECT on exactly three views -- v_insights_public, v_site_public
+ * and v_site_meta (the last import date) -- and no grants at all on habits, repetitions, scores, derived_metrics,
  * metric_catalog or site_blocks.
  *
  * So the queries below are not the thing keeping your habit data private. The
@@ -64,6 +64,21 @@ export async function getPublicBlocks(): Promise<SiteBlock[]> {
 function asDate(value: unknown): string | null {
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   return value ? String(value) : null;
+}
+
+/**
+ * Date of the last successful import (ISO yyyy-mm-dd, UTC), or null. Reads
+ * v_site_meta, so a database where setup_public_role.py hasn't been re-run yet
+ * just shows no date instead of failing the page.
+ */
+export async function getLastImportDate(): Promise<string | null> {
+  try {
+    const sql = publicSql();
+    const rows = await sql`SELECT last_import_at FROM v_site_meta`;
+    return asDate(rows[0]?.last_import_at);
+  } catch {
+    return null;
+  }
 }
 
 /** Every published analysis, newest first. */

@@ -53,6 +53,13 @@ SELECT id,
 FROM site_blocks
 WHERE is_public;
 
+-- When the data was last imported: one timestamp, nothing about what was in it.
+-- The diary prints it as the date at the top of the first page.
+CREATE OR REPLACE VIEW v_site_meta AS
+SELECT max(finished_at) AS last_import_at
+FROM sync_runs
+WHERE status = 'success';
+
 -- Start from zero, so re-running this can only ever tighten access.
 REVOKE ALL ON ALL TABLES    IN SCHEMA public FROM habits_public_ro;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM habits_public_ro;
@@ -61,6 +68,7 @@ REVOKE ALL ON SCHEMA public FROM habits_public_ro;
 GRANT USAGE  ON SCHEMA public TO habits_public_ro;
 GRANT SELECT ON v_insights_public TO habits_public_ro;
 GRANT SELECT ON v_site_public     TO habits_public_ro;
+GRANT SELECT ON v_site_meta       TO habits_public_ro;
 
 -- Future tables must not become readable by default.
 ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM habits_public_ro;

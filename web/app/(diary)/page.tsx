@@ -3,10 +3,12 @@ import Link from "next/link";
 import Book from "@/components/book/Book";
 import { CloseBookButton, SoundToggle } from "@/components/book/PocketTools";
 import TocLinks from "@/components/book/TocLinks";
+import { CadenceBlocks, SleepBlocks } from "@/components/GraphBlocks";
 import InsightCard from "@/components/InsightCard";
 import SiteBlocks from "@/components/SiteBlocks";
 import StoryTimeline from "@/components/StoryTimeline";
-import { getPublicBlocks, getPublishedInsights } from "@/lib/db/public";
+import { getLastImportDate, getPublicBlocks, getPublishedInsights } from "@/lib/db/public";
+import { diaryDate } from "@/lib/story";
 
 // The pipeline refreshes everything daily, so a cached render for an hour is
 // plenty fresh and keeps the database out of the hot path. Showing or hiding a
@@ -15,15 +17,24 @@ import { getPublicBlocks, getPublishedInsights } from "@/lib/db/public";
 export const revalidate = 3600;
 
 export default async function PublicPage() {
-  const [blocks, insights] = await Promise.all([
+  const [blocks, insights, lastImport] = await Promise.all([
     getPublicBlocks(),
     getPublishedInsights(),
+    getLastImportDate(),
   ]);
+  const writtenOn = diaryDate(lastImport);
+
+  // Graph pages exist only once at least one of their blocks is shown.
+  const hasGraphs = blocks.some((b) => b.kind === "graph" && b.payload.type === "cadence");
+  const hasSleep = blocks.some((b) => b.kind === "graph" && b.payload.type === "sleep");
 
   const contents = (
     <>
       <header className="masthead">
-        <p className="meta">A habit journal, since January 2023</p>
+        <div className="masthead-top">
+          <p className="meta masthead-since">A habit journal, since January 2023</p>
+          {writtenOn && <p className="diary-date">{writtenOn}</p>}
+        </div>
         <h1 className="page-title write-in">Dear habits…</h1>
         <p className="lede">
           A letter to the things I tried to do every day: sleep, routine,
@@ -38,6 +49,8 @@ export default async function PublicPage() {
       <TocLinks
         entries={[
           { id: "stats", label: "Stats", note: "the numbers, sketched and coloured in" },
+          ...(hasGraphs ? [{ id: "graphs", label: "Graphs", note: "how often, week by week" }] : []),
+          ...(hasSleep ? [{ id: "sleep", label: "Sleep", note: "asleep and awake, night by night" }] : []),
           { id: "stories", label: "Stories", note: "one entry for every habit, in the order they began" },
           { id: "pocket", label: "Pocket", note: "inside the back cover" },
         ]}
@@ -60,6 +73,20 @@ export default async function PublicPage() {
       {insights.map((insight) => (
         <InsightCard key={insight.id} insight={insight} />
       ))}
+    </>
+  );
+
+  const graphs = (
+    <>
+      <h2 className="page-title write-in">Graphs</h2>
+      <CadenceBlocks blocks={blocks} />
+    </>
+  );
+
+  const sleep = (
+    <>
+      <h2 className="page-title write-in">Sleep</h2>
+      <SleepBlocks blocks={blocks} />
     </>
   );
 
@@ -104,6 +131,8 @@ export default async function PublicPage() {
         pages={[
           { id: "contents", label: "Contents", content: contents },
           { id: "stats", label: "Stats", content: stats },
+          ...(hasGraphs ? [{ id: "graphs", label: "Graphs", content: graphs }] : []),
+          ...(hasSleep ? [{ id: "sleep", label: "Sleep", content: sleep }] : []),
           { id: "stories", label: "Stories", content: stories },
         ]}
       />

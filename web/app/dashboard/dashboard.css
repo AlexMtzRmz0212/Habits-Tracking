@@ -1,0 +1,1278 @@
+/* Private dashboard: a plain, light, utilitarian look. Nothing here is shared
+   with the public diary (app/(diary)/globals.css); the two are separate root
+   layouts. Light only on purpose: the hand-drawn charts use fixed ink colours
+   that need a light surface. */
+
+:root {
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --border: #e6e2dc;
+  --text: #23201d;
+  --muted: #6b645c;
+  --accent: #b5643c;
+  --accent-soft: #f3e5dd;
+  --grid: #ece8e2;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 10px;
+  --measure: 68ch;
+}
+
+
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 6rem;
+}
+
+.masthead {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.75rem;
+  margin-bottom: 2.5rem;
+}
+
+/* The journal voice: a serif for the words that are written TO the habits and
+   ABOUT them (title, entry names, your notes). Data stays sans and mono. */
+:root {
+  --serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+}
+
+.masthead h1,
+.timeline-card h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+}
+
+.masthead h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.lede,
+.timeline-note,
+.signoff {
+  font-family: var(--serif);
+}
+
+.timeline-note {
+  font-style: italic;
+  font-size: 1.05rem;
+}
+
+.signoff {
+  font-style: italic;
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem;
+}
+
+.lede {
+  color: var(--muted);
+  max-width: var(--measure);
+  margin: 0;
+}
+
+.meta {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* --- analysis card --------------------------------------------------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.card h2 {
+  font-size: 1.3rem;
+  margin: 0.4rem 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.card p {
+  margin: 0 0 1.25rem;
+  max-width: var(--measure);
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 100px;
+  padding: 0.18rem 0.6rem;
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+/* --- tabs ---------------------------------------------------------------- */
+
+.tab-list {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.6rem 1rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+/* --- habit stories ----------------------------------------------------- */
+
+.block-stats {
+  margin-bottom: 2.5rem;
+}
+
+.timeline {
+  position: relative;
+  list-style: none;
+  margin: 0 0 2.5rem;
+  padding: 0 0 0 1.5rem;
+  border-left: 2px solid var(--border);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem - 6px);
+  top: 1.9rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+
+.timeline-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+}
+
+.timeline-card h2 {
+  font-size: 1.2rem;
+  margin: 0.4rem 0 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.timeline-span {
+  margin: 0 0 0.75rem;
+}
+
+/* Collapsible story: the header is the toggle, a chevron shows its state. */
+.story-fold > summary {
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+  padding-right: 1.75rem;
+}
+
+.story-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.story-fold > summary::after {
+  content: "";
+  position: absolute;
+  right: 0.25rem;
+  top: 0.9rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.story-fold[open] > summary::after {
+  transform: rotate(-135deg);
+  top: 1.1rem;
+}
+
+/* Once unfolded, the header is separated from the story below it. */
+.story-fold[open] > summary {
+  margin-bottom: 0.25rem;
+}
+
+.story-fold > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.story-fold:not([open]) > summary .timeline-span {
+  margin-bottom: 0;
+}
+
+.timeline-note {
+  margin: 0 0 0.75rem;
+  max-width: var(--measure);
+}
+
+.timeline-facts {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.timeline-events {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.tag-muted {
+  color: var(--muted);
+  background: var(--grid);
+}
+
+/* Private dashboard only: hidden blocks stay readable but clearly "off". */
+/* Hidden from the public site: the same content at full strength, set on a
+   grey shade so it is easy to read and still plainly "not shown". */
+.stat-row > .is-hidden,
+.timeline-item.is-hidden .timeline-card,
+.graph-card.is-hidden,
+.sleep-block.is-hidden {
+  background: #ebe8e2;
+}
+
+.stat-row > .is-hidden,
+.sleep-block.is-hidden {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.sleep-block.is-hidden {
+  padding: 1rem;
+}
+
+.block-controls {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+}
+
+.block-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-on {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.btn-quiet {
+  border-color: transparent;
+}
+
+.block-editor {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  max-width: var(--measure);
+}
+
+.block-editor label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.block-editor .block-editor-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.block-editor .block-editor-check input {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+.block-editor input,
+.block-editor textarea {
+  font: inherit;
+  padding: 0.5rem 0.7rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.block-editor input:focus,
+.block-editor textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* --- habit calendar ---------------------------------------------------- */
+
+.calendar {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.cal-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--muted);
+}
+
+.cal-done {
+  fill: var(--accent);
+  background: var(--accent);
+}
+
+.cal-missed {
+  fill: var(--muted);
+  background: var(--muted);
+  opacity: 0.55;
+}
+
+.cal-skip {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  background: transparent;
+  border: 1.5px solid var(--muted);
+}
+
+.cal-empty {
+  fill: var(--grid);
+  background: var(--grid);
+}
+
+/* Roomy calendar for short habits: weekday columns, a date and a mark per day. */
+.daygrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 4.75rem));
+  gap: 0.3rem;
+}
+
+.day-head {
+  text-align: center;
+  margin-bottom: 0.1rem;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 1 / 0.85;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.day-void {
+  visibility: hidden;
+}
+
+.day-num {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.day-mark {
+  align-self: center;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Reuse the heatmap's status colours, as backgrounds rather than SVG fills. */
+.day.cal-done {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.day.cal-missed {
+  opacity: 1;
+  background: var(--grid);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.day.cal-skip {
+  background: transparent;
+  border: 1.5px dashed var(--muted);
+  color: var(--muted);
+}
+
+.day.cal-empty {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.4rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cal-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 0.3rem;
+  vertical-align: -1px;
+  box-sizing: border-box;
+}
+
+.other-habits-calendar {
+  margin-top: 0.5rem;
+}
+
+.other-habits-calendar > summary {
+  cursor: pointer;
+}
+
+/* --- habits without a story yet (dashboard) ------------------------------ */
+
+.other-habits > .meta {
+  margin: 0;
+}
+
+.other-habits-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.other-habits-filters input,
+.other-habits-filters select {
+  font: inherit;
+  padding: 0.45rem 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.other-habits-filters input {
+  flex: 1 1 14rem;
+}
+
+.other-habits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.other-habits-list > li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.other-habits-list .block-controls {
+  margin-top: 0.5rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.other-habits-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+/* Tables (e.g. the habits list) can genuinely be wider than the card on a
+   narrow screen, so they keep a scrollable wrapper. */
+
+
+/* Charts are already fully responsive (ResponsiveContainer fills this),
+   so no scrolling is ever needed here. overflow: hidden also swallows the
+   odd sub-pixel width Recharts can compute, which is enough on its own to
+   make overflow-x: auto show a scrollbar even though nothing is clipped. */
+
+
+details.sql {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+details.sql summary {
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+details.sql pre {
+  overflow-x: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+/* --- pin gate -------------------------------------------------------- */
+
+.gate {
+  max-width: 22rem;
+  margin: 6rem auto;
+  text-align: center;
+}
+
+.gate input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  font-size: 1rem;
+  font-family: var(--mono);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.gate input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.gate button {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.gate button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.logout {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+}
+
+.logout button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.logout button:hover {
+  color: var(--text);
+}
+
+.ghost-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.ghost-btn:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.ghost-btn-lock {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  color: var(--accent);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 1px;
+}
+
+.error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  min-height: 1.2rem;
+}
+
+
+
+.empty {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 1.75rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty code {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+table.habits {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+table.habits th,
+table.habits td {
+  text-align: left;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+table.habits th {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+table.habits td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* --- story figures: stat rows and charts between a story's paragraphs ---- */
+
+.figure-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 1.25rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.figure-stats li {
+  padding-left: 0.85rem;
+  border-left: 3px solid var(--accent);
+}
+
+.figure-stat-value {
+  font-size: 1.9rem;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.figure-stat-label {
+  margin-top: 0.2rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.figure-chart {
+  margin: 1.25rem 0 1.5rem;
+  padding: 0.9rem 1rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.figure-title {
+  margin-bottom: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.figure-caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* --- additions for the shared components -------------------------------- */
+
+:root {
+  color-scheme: light;
+  --ink: #2b1d14;
+  --brick: #a5402d;
+  --forest: #3f6b3a;
+  --dusty: #5b7c99;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Story entries use h3 now. */
+.timeline-card h3 {
+  display: inline;
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.story-fold > summary .tag {
+  margin-right: 0.6rem;
+}
+
+.timeline-note {
+  font-family: var(--serif);
+  font-style: normal;
+  font-size: 1.02rem;
+}
+
+.timeline-facts span {
+  display: block;
+}
+
+.timeline-facts span::before {
+  content: "· ";
+}
+
+/* The diary's tape and wobble have no place here. */
+.tape {
+  display: none;
+}
+
+.figure-chart {
+  position: relative;
+}
+
+/* --- hand-drawn charts (RoughChart) ---------------------------------------- */
+
+@keyframes ink-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-in {
+  to { opacity: 1; }
+}
+
+.rough-chart {
+  position: relative;
+  width: 100%;
+}
+
+.rough-chart svg {
+  display: block;
+  overflow: visible;
+}
+
+.rough-chart svg g path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ink-draw 0.9s ease-out calc(var(--i, 0) * 40ms + 0.2s) forwards;
+}
+
+.rc-dot {
+  opacity: 0;
+  animation: fade-in 0.3s ease-out calc(var(--i, 0) * 40ms + 0.5s) forwards;
+}
+
+.rc-num,
+.rc-crayon {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--ink);
+}
+
+.rc-crayon {
+  fill: var(--muted);
+}
+
+.rc-note {
+  font-size: 13px;
+  fill: var(--muted);
+}
+
+.rc-note-red {
+  fill: var(--brick);
+}
+
+.rc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.2rem;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.rc-legend i {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.35rem;
+  border-radius: 3px;
+}
+
+.rough-tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 0.2rem 0.6rem;
+  transform: translate(-50%, -100%);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rough-chart svg g path,
+  .mark path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .rc-dot {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* --- calendar marks (short habits) ----------------------------------------- */
+
+.day {
+  position: relative;
+}
+
+.mark {
+  position: absolute;
+  right: 0.15rem;
+  bottom: 0.1rem;
+  width: 60%;
+  height: 60%;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mark path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ink-draw 0.45s ease-out calc(var(--i, 0) * 28ms + 0.3s) forwards;
+}
+
+.mark-done path { stroke: var(--forest); stroke-width: 2.8; }
+.mark-missed path { stroke: var(--brick); stroke-width: 2.4; }
+.mark-skip path { stroke: var(--dusty); stroke-width: 2.4; }
+
+.day.cal-done {
+  background: rgba(63, 107, 58, 0.1);
+  border-color: var(--forest);
+  color: var(--ink);
+}
+
+.day.cal-missed {
+  background: var(--grid);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.cal-key.cal-done { background: var(--forest); }
+.cal-key.cal-missed { background: var(--brick); opacity: 0.7; }
+.cal-key.cal-skip { background: transparent; border: 2px solid var(--dusty); }
+rect.cal-done { fill: var(--forest); }
+rect.cal-missed { fill: var(--brick); opacity: 0.6; }
+rect.cal-skip { fill: none; stroke: var(--dusty); stroke-width: 1.5; }
+rect.cal-empty { fill: var(--grid); }
+
+/* --- sleep tab -------------------------------------------------------------- */
+
+.sleep-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.sleep-periods,
+.sleep-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sleep-anchor {
+  min-width: 9rem;
+  text-align: center;
+}
+
+.sleep-card {
+  padding: 1.25rem 1rem 1rem;
+}
+
+.sleep-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sleep-asleep {
+  fill: #4a5f8f;
+  background: #4a5f8f;
+}
+
+.sleep-awake {
+  fill: var(--accent-soft);
+  background: var(--accent-soft);
+}
+
+.sleep-none {
+  fill: none;
+  stroke: var(--grid);
+  stroke-dasharray: 2 4;
+}
+
+.sleep-grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+
+.sleep-tick {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.sleep-value {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: #fff;
+}
+
+.sleep-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.75rem 0 0;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.sleep-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 0.35rem;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
+/* --- graphs tab ------------------------------------------------------------- */
+
+.graph-card {
+  padding: 1.25rem 1rem 0.5rem;
+}
+
+.graph {
+  margin: 1.25rem 0 1.75rem;
+}
+
+.graph-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.graph-done {
+  fill: var(--forest);
+  background: var(--forest);
+}
+
+.graph-late {
+  fill: #c98a2e;
+  background: #c98a2e;
+}
+
+.graph-missed {
+  fill: rgba(165, 64, 45, 0.16);
+  background: rgba(165, 64, 45, 0.3);
+}
+
+.graph-median,
+.graph-mean {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.graph-median {
+  stroke-dasharray: 6 4;
+}
+
+.graph-mean {
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
+}
+
+.graph-ref {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3px;
+}
+
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.6rem 0 0;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.graph-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* --- formula figure -------------------------------------------------------- */
+
+.figure-formula {
+  margin: 1.25rem 0 1.5rem;
+  padding: 0.9rem 1rem 0.5rem;
+}
+
+.formula-row {
+  padding: 0.6rem 0 0.8rem;
+  border-top: 1px dashed currentColor;
+  border-top-color: rgba(120, 110, 100, 0.35);
+}
+
+.formula-row:first-of-type {
+  border-top: 0;
+}
+
+.formula-label {
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.formula-math {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+}
+
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.frac-top {
+  padding: 0 0.4rem 0.15rem;
+  border-bottom: 2px solid currentColor;
+}
+
+.frac-bottom {
+  padding: 0.15rem 0.4rem 0;
+}
+
+.formula-eq {
+  opacity: 0.6;
+}
+
+.formula-result {
+  font-size: 1.5rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Line keys in the graph legends: the same dash style as the line on the chart. */
+.graph-line-key {
+  display: inline-block;
+  width: 1.6rem;
+  margin-right: 0.35rem;
+  vertical-align: 0.2em;
+  border-top: 2px solid var(--ink);
+}
+
+.graph-line-median { border-top-style: dashed; }
+.graph-line-mean { border-top-style: dotted; }
+
+.graph-part.is-hidden {
+  padding: 0.5rem 1rem 0.75rem;
+  border-radius: var(--radius, 0.4rem);
+  background: #ebe8e2;
+}

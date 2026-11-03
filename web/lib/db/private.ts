@@ -161,24 +161,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
-/** Sleep duration over time, for the private dashboard's headline chart. */
-export async function getSleepSeries(): Promise<Array<{ date: string; value: number }>> {
-  const sql = await requireUnlocked();
-  const rows = await sql`
-    SELECT entry_date, value
-    FROM derived_metrics
-    WHERE metric_key = 'sleep_hours'
-    ORDER BY entry_date
-  `;
-  return rows.map((r: any) => ({
-    date:
-      r.entry_date instanceof Date
-        ? r.entry_date.toISOString().slice(0, 10)
-        : String(r.entry_date),
-    value: Number(r.value),
-  }));
-}
-
 /** Most-tracked habits with their completion rate. Private by definition. */
 export async function getHabitSummary(limit = 20) {
   const sql = await requireUnlocked();

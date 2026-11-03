@@ -94,21 +94,48 @@ def derive_sleep_hours(conn, verbose=True):
         [bed_uuid, wake_uuid],
     )
 
+    # The clock times behind each night, for the private dashboard's sleep view.
+    # Stored only for nights that pass the plausibility check, so all three
+    # metrics cover exactly the same dates. Private like every other metric
+    # until someone publishes it.
+    _register_metric(
+        conn,
+        "bed_clock",
+        "Bedtime",
+        "When the night started, in hours after midnight. Negative is the "
+        "evening before: -0.5 is 23:30.",
+        "hours",
+        [bed_uuid],
+    )
+    _register_metric(
+        conn,
+        "wake_clock",
+        "Wake-up",
+        "When the night ended, in hours after midnight.",
+        "hours",
+        [wake_uuid],
+    )
+
     kept = dropped = 0
     for entry_date, bed_value, wake_value in pairs:
         hours = ts.sleep_duration_hours(float(bed_value), float(wake_value))
         if not ts.is_plausible_sleep(hours):
             dropped += 1
             continue
-        conn.execute(
-            """
-            INSERT INTO derived_metrics (metric_key, entry_date, value, unit)
-            VALUES ('sleep_hours', %s, %s, 'hours')
-            ON CONFLICT (metric_key, entry_date) DO UPDATE SET
-                value = EXCLUDED.value, unit = EXCLUDED.unit
-            """,
-            (entry_date, round(hours, 3)),
-        )
+        for key, value in (
+            ("sleep_hours", hours),
+            ("bed_clock", ts.bedtime_offset(float(bed_value))),
+            ("wake_clock", float(wake_value)),
+        ):
+            conn.execute(
+                """
+                INSERT INTO derived_metrics (metric_key, entry_date, value, unit)
+                VALUES (%s, %s, %s, 'hours')
+                ON CONFLICT (metric_key, entry_date) DO UPDATE SET
+                    value = EXCLUDED.value, unit = EXCLUDED.unit
+                """,
+                (key, entry_date, round(value, 3)),
+            )
         kept += 1
 
     if verbose:

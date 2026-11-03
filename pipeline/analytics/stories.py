@@ -14,6 +14,13 @@ is left exactly as it is.
 from __future__ import annotations
 
 import json
+from datetime import timedelta
+from statistics import median
+
+# Habits whose honest measure is "how many weeks" rather than "how many days":
+# done about once a week, so a daily done-rate says little. Matched by name
+# pattern, like the sleep metrics, so no real habit name is committed here.
+WEEKLY_CADENCE_PATTERNS = ["%grocer%"]
 
 _HABIT_FACTS = """
 SELECT h.id, h.name, h.value_type, h.target_type, h.target_value, h.unit,
@@ -147,12 +154,29 @@ def habit_stories(conn) -> int:
     return written
 
 
+# The journal starts in the first month where at least two habits were logged.
+# One habit tried for a few days beforehand is a false start, not the journal,
+# and counting it made the "Tracking since" stat disagree with the cover.
+_JOURNAL_START = """
+SELECT min(r.entry_date)
+FROM repetitions r
+WHERE r.entry_date >= (
+    SELECT date_trunc('month', entry_date)::date
+    FROM repetitions
+    GROUP BY date_trunc('month', entry_date)
+    HAVING count(DISTINCT habit_id) >= 2
+    ORDER BY 1
+    LIMIT 1
+)
+"""
+
+
 def headline_stats(conn) -> int:
-    habits, entries, first_entry = conn.execute(
+    habits, entries = conn.execute(
         "SELECT (SELECT count(*) FROM habits), "
-        "       (SELECT count(*) FROM repetitions), "
-        "       (SELECT min(entry_date) FROM repetitions)"
+        "       (SELECT count(*) FROM repetitions)"
     ).fetchone()
+    first_entry = conn.execute(_JOURNAL_START).fetchone()[0]
 
     stats = [
         ("stat-habits", "Habits tracked", habits, None),
@@ -167,8 +191,178 @@ def headline_stats(conn) -> int:
     return len(stats)
 
 
+def weekly_cadence(yes_days, first_day, last_day) -> dict | None:
+    """How often a roughly-weekly habit was actually done.
+
+    Weeks run Monday to Sunday, from the week of `first_day` to the week of
+    `last_day` inclusive (the partial first and last weeks count as weeks). A
+    week is "done" if at least one day in it is. Gaps are the days between one
+    done day and the next, so a missed week shows up as a gap of 8 or more.
+    Returns None when the habit was never done.
+
+    Besides the headline numbers, `weeks` has one entry per week (how many
+    days that week were done, zero for a missed week) and `gaps` has one entry
+    per gap, dated by the day it ended, which is what the charts draw.
+    """
+    days = sorted(set(yes_days))
+    if not days:
+        return None
+
+    def monday(day):
+        return day - timedelta(days=day.weekday())
+
+    gaps = [(later - earlier).days for earlier, later in zip(days, days[1:])]
+    done_per_week: dict = {}
+    for day in days:
+        done_per_week[monday(day)] = done_per_week.get(monday(day), 0) + 1
+
+    first_week, last_week = monday(first_day), monday(last_day)
+    total = (last_week - first_week).days // 7 + 1
+    weeks = [
+        {
+            "week": (first_week + timedelta(weeks=i)).isoformat(),
+            "done": done_per_week.get(first_week + timedelta(weeks=i), 0),
+        }
+        for i in range(total)
+    ]
+    return {
+        "weeksDone": len(done_per_week),
+        "weeksTotal": total,
+        "medianGap": median(gaps) if gaps else None,
+        "meanGap": round(sum(gaps) / len(gaps), 1) if gaps else None,
+        "longestGap": max(gaps) if gaps else None,
+        "weeks": weeks,
+        "gaps": [
+            {"date": later.isoformat(), "days": (later - earlier).days}
+            for earlier, later in zip(days, days[1:])
+        ],
+    }
+
+
+def weekly_cadences(conn):
+    """(habit id, name, cadence) for each weekly habit that was ever done."""
+    for pattern in WEEKLY_CADENCE_PATTERNS:
+        habits = conn.execute(
+            "SELECT id, name FROM habits "
+            "WHERE value_type = 'boolean' AND name ILIKE %s ORDER BY id",
+            (pattern,),
+        ).fetchall()
+        for hid, name in habits:
+            rows = conn.execute(
+                "SELECT entry_date, status FROM repetitions "
+                "WHERE habit_id = %s AND status IN ('yes', 'no')",
+                (hid,),
+            ).fetchall()
+            if not rows:
+                continue
+            tracked = [day for day, _ in rows]
+            cadence = weekly_cadence(
+                [day for day, status in rows if status == "yes"],
+                min(tracked),
+                max(tracked),
+            )
+            if cadence is not None:
+                yield hid, name, cadence
+
+
+def cadence_stats(conn) -> int:
+    """Headline stats for weekly habits, as private `stat` blocks.
+
+    They land on the dashboard's Stats tab like the other headline numbers:
+    hidden until you choose to show them, and the wording stays yours.
+    """
+    written = 0
+    for hid, name, cadence in weekly_cadences(conn):
+        stats = [
+            (
+                f"stat-cadence-{hid}-weeks",
+                f"{name}: weeks done",
+                f"{cadence['weeksDone']} of {cadence['weeksTotal']}",
+            ),
+            (
+                f"stat-cadence-{hid}-gap",
+                f"{name}: typical gap between",
+                f"{cadence['medianGap']:g} days" if cadence["medianGap"] is not None else None,
+            ),
+            (
+                f"stat-cadence-{hid}-longest",
+                f"{name}: longest gap",
+                f"{cadence['longestGap']} days" if cadence["longestGap"] is not None else None,
+            ),
+        ]
+        for slug, title, value in stats:
+            if value is None:
+                continue
+            conn.execute(
+                _UPSERT_BLOCK,
+                (slug, "stat", None, title, json.dumps({"value": value}), None),
+            )
+            written += 1
+    return written
+
+
+def graph_blocks(conn) -> int:
+    """Chart data as site blocks, so each graph has its own show/hide switch.
+
+    Each weekly habit gets three blocks: weeks, gaps and the gap histogram. The sleep block carries
+    every night as [date, hours asleep, bedtime, wake-up] (clock times in hours
+    after midnight, negative for the evening before); the dashboard and the
+    public page draw it with the same component.
+    """
+    written = 0
+    summary_keys = ("weeksDone", "weeksTotal", "medianGap", "meanGap", "longestGap")
+    for hid, name, c in weekly_cadences(conn):
+        summary = {key: c[key] for key in summary_keys}
+        # One block per graph, so each has its own show/hide switch. `group`
+        # ties a habit's graphs together without putting its name in the data.
+        parts = {
+            "weeks": {"weeks": c["weeks"]},
+            "gaps": {"gaps": c["gaps"]},
+            "histogram": {"gaps": c["gaps"]},
+        }
+        for chart, data in parts.items():
+            payload = {
+                "type": "cadence",
+                "group": f"cadence-{hid}",
+                "chart": chart,
+                "summary": summary,
+                **data,
+            }
+            conn.execute(
+                _UPSERT_BLOCK,
+                (f"graph-cadence-{hid}-{chart}", "graph", hid, name, json.dumps(payload), None),
+            )
+            written += 1
+
+    nights = conn.execute(
+        """
+        SELECT s.entry_date, s.value, b.value, w.value
+        FROM derived_metrics s
+        JOIN derived_metrics b ON b.entry_date = s.entry_date AND b.metric_key = 'bed_clock'
+        JOIN derived_metrics w ON w.entry_date = s.entry_date AND w.metric_key = 'wake_clock'
+        WHERE s.metric_key = 'sleep_hours'
+        ORDER BY s.entry_date
+        """
+    ).fetchall()
+    if nights:
+        payload = {
+            "type": "sleep",
+            "nights": [
+                [day.isoformat(), float(sleep), float(bed), float(wake)]
+                for day, sleep, bed, wake in nights
+            ],
+        }
+        conn.execute(
+            _UPSERT_BLOCK,
+            ("graph-sleep", "graph", None, "Sleep and awake time", json.dumps(payload), None),
+        )
+        written += 1
+    return written
+
+
 def run_all(conn) -> int:
     n_stories = habit_stories(conn)
-    n_stats = headline_stats(conn)
-    print(f"  {n_stories} habit stories, {n_stats} headline stats")
-    return n_stories + n_stats
+    n_stats = headline_stats(conn) + cadence_stats(conn)
+    n_graphs = graph_blocks(conn)
+    print(f"  {n_stories} habit stories, {n_stats} headline stats, {n_graphs} graphs")
+    return n_stories + n_stats + n_graphs

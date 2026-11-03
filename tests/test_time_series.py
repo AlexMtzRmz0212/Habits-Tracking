@@ -35,6 +35,21 @@ class TestSleepDuration:
         assert ts.sleep_duration_hours(23.0, 9.0) == pytest.approx(10.0)
 
 
+class TestBedtimeOffset:
+    def test_evening_is_negative(self):
+        assert ts.bedtime_offset(23.5) == pytest.approx(-0.5)
+
+    def test_after_midnight_is_unchanged(self):
+        assert ts.bedtime_offset(2.75) == pytest.approx(2.75)
+
+    def test_midnight_itself(self):
+        assert ts.bedtime_offset(0.0) == pytest.approx(0.0)
+
+    def test_evening_boundary(self):
+        assert ts.bedtime_offset(18.0) == pytest.approx(-6.0)
+        assert ts.bedtime_offset(17.9) == pytest.approx(17.9)
+
+
 class TestPlausibility:
     @pytest.mark.parametrize("hours", [2.0, 7.5, 16.0])
     def test_accepts_believable_nights(self, hours):

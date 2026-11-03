@@ -61,21 +61,19 @@ interface Props {
   pages: PageDef[];
   /** The pocket inside the back cover: settings, owner link, sound. */
   pocket: ReactNode;
-  /** Skip the cover (the owner's dashboard opens straight onto the pages). */
-  startOpen?: boolean;
   /** Printed on the cover. */
   title: string;
   subtitle: string;
 }
 
-export default function Book({ pages, pocket, startOpen = false, title, subtitle }: Props) {
+export default function Book({ pages, pocket, title, subtitle }: Props) {
   const all = useMemo<PageDef[]>(
     () => [...pages, { id: "pocket", label: "Pocket", content: pocket }],
     [pages, pocket]
   );
   const ids = useMemo(() => all.map((p) => p.id), [all]);
 
-  const [open, setOpen] = useState(startOpen);
+  const [open, setOpen] = useState(false);
   // "swing": the cover is opening or closing right now; "": at rest.
   const [swing, setSwing] = useState<"" | "opening" | "closing">("");
   const [page, setPage] = useState(pages[0].id);
@@ -269,45 +267,41 @@ export default function Book({ pages, pocket, startOpen = false, title, subtitle
   }
 
   const api = useMemo(() => ({ goTo, closeBook }), [goTo, closeBook]);
-  const showCover = !startOpen;
 
   return (
     <BookContext.Provider value={api}>
       <div
         ref={bookRef}
-        className={`book${startOpen ? " book-owner" : ""}`}
+        className="book"
         data-open={open ? "1" : "0"}
         data-swing={swing || undefined}
       >
         {/* The cover is hinged at the spine. Closed it covers the pages; open (on
-            wide screens) it lies on the left as the inside of the front board.
-            The owner's dashboard has no clasp, only that left board. */}
-        <div className={`cover${startOpen ? " cover-static" : ""}`} inert={open && !swing}>
-          {!startOpen && (
-            <div className="cover-face">
-              <div className="cover-stitch" aria-hidden="true" />
-              <div className="cover-plate">
-                <p className="cover-title">{title}</p>
-                <p className="cover-sub">{subtitle}</p>
-              </div>
-              <div className="cover-strap" aria-hidden="true" />
-              <button
-                type="button"
-                className="clasp"
-                aria-label="Open the diary"
-                onClick={openCover}
-              >
-                <svg viewBox="0 0 64 96" width="64" height="96" aria-hidden="true">
-                  <rect x="6" y="6" width="52" height="84" rx="9" className="brass" />
-                  <rect x="13" y="13" width="38" height="70" rx="5" className="brass-inset" />
-                  <circle cx="32" cy="37" r="9" className="brass-dark" />
-                  <rect x="29.5" y="40" width="5" height="19" rx="2.5" className="brass-dark" />
-                  <circle cx="32" cy="37" r="3.5" className="brass-shine" />
-                </svg>
-              </button>
-              <div className="cover-ribbon" aria-hidden="true" />
+            wide screens) it lies on the left as the inside of the front board. */}
+        <div className="cover" inert={open && !swing}>
+          <div className="cover-face">
+            <div className="cover-stitch" aria-hidden="true" />
+            <div className="cover-plate">
+              <p className="cover-title">{title}</p>
+              <p className="cover-sub">{subtitle}</p>
             </div>
-          )}
+            <div className="cover-strap" aria-hidden="true" />
+            <button
+              type="button"
+              className="clasp"
+              aria-label="Open the diary"
+              onClick={openCover}
+            >
+              <svg viewBox="0 0 64 96" width="64" height="96" aria-hidden="true">
+                <rect x="6" y="6" width="52" height="84" rx="9" className="brass" />
+                <rect x="13" y="13" width="38" height="70" rx="5" className="brass-inset" />
+                <circle cx="32" cy="37" r="9" className="brass-dark" />
+                <rect x="29.5" y="40" width="5" height="19" rx="2.5" className="brass-dark" />
+                <circle cx="32" cy="37" r="3.5" className="brass-shine" />
+              </svg>
+            </button>
+            <div className="cover-ribbon" aria-hidden="true" />
+          </div>
           <div className="cover-back" aria-hidden="true">
             <p className="bookplate">{subtitle}</p>
             {/* On wide screens the board dissolves into the dark desk towards the
@@ -316,7 +310,7 @@ export default function Book({ pages, pocket, startOpen = false, title, subtitle
           </div>
         </div>
 
-        <div ref={boardsRef} className="boards" inert={showCover && !open}>
+        <div ref={boardsRef} className="boards" inert={!open}>
           <div
             role="tablist"
             aria-orientation="vertical"

@@ -17,6 +17,20 @@ export function monthYear(iso: string | null | undefined): string | null {
   });
 }
 
+/** "2026-11-03" -> "Tuesday, 3 November 2026", the way a diary dates its page. */
+export function diaryDate(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const date = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export const STATUS_LABEL: Record<HabitStatus, string> = {
   active: "Still going",
   archived: "Archived",

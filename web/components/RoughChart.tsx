@@ -484,28 +484,32 @@ export default function RoughChart({ spec }: { spec: RoughSpec }) {
         </div>
       )}
 
-      {/* The same numbers as a table, for screen readers. */}
-      <table className="sr-only">
-        <caption>{spec.label}</caption>
-        <thead>
-          <tr>
-            <th>{xKey}</th>
-            {series.map((s) => (
-              <th key={s.key}>{s.label}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, i) => (
-            <tr key={i}>
-              <td>{labels[i]}</td>
+      {/* The same numbers as a table, for screen readers. The wrapper is what
+          is hidden: a table ignores the 1px width of .sr-only and, being
+          absolutely positioned, would stretch the whole page sideways. */}
+      <div className="sr-only">
+        <table>
+          <caption>{spec.label}</caption>
+          <thead>
+            <tr>
+              <th>{xKey}</th>
               {series.map((s) => (
-                <td key={s.key}>{format(num(row, s.key))}</td>
+                <th key={s.key}>{s.label}</th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((row, i) => (
+              <tr key={i}>
+                <td>{labels[i]}</td>
+                {series.map((s) => (
+                  <td key={s.key}>{format(num(row, s.key))}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

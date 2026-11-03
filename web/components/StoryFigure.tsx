@@ -57,6 +57,33 @@ export default function StoryFigureView({ figure }: { figure: StoryFigure }) {
     );
   }
 
+  if (figure.type === "formula") {
+    return (
+      <figure className="figure-formula" aria-label={figure.title ?? "Formula"}>
+        {figure.title && <figcaption className="figure-title">{figure.title}</figcaption>}
+        {figure.rows.map((row) => (
+          <div key={row.label} className="formula-row">
+            <div className="formula-label">{row.label}</div>
+            <div className="formula-math">
+              <span className="frac">
+                <span className="frac-top">{row.top}</span>
+                <span className="frac-bottom">{row.bottom}</span>
+              </span>
+              <span className="formula-eq">=</span>
+              <span className="frac">
+                <span className="frac-top">{row.topValues}</span>
+                <span className="frac-bottom">{row.bottomValues}</span>
+              </span>
+              <span className="formula-eq">=</span>
+              <span className="formula-result">{row.result}</span>
+            </div>
+          </div>
+        ))}
+        {figure.caption && <p className="figure-caption">{figure.caption}</p>}
+      </figure>
+    );
+  }
+
   return (
     <figure
       className="figure-chart"
