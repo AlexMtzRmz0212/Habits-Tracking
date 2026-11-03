@@ -1,3 +1,4 @@
+import ScrollToEnd from "@/components/ScrollToEnd";
 import { monthYear } from "@/lib/story";
 
 /**
@@ -216,7 +217,7 @@ export default function HabitCalendar({ start, days }: Props) {
 
   return (
     <figure className="calendar">
-      <div className="calendar-scroll">
+      <ScrollToEnd className="calendar-scroll">
         <svg
           role="img"
           aria-label={summary}
@@ -226,7 +227,7 @@ export default function HabitCalendar({ start, days }: Props) {
           {labels}
           <g filter="url(#crayon)">{cells}</g>
         </svg>
-      </div>
+      </ScrollToEnd>
       <figcaption className="calendar-legend">
         <span><i className="cal-key cal-done" /> Done</span>
         <span><i className="cal-key cal-missed" /> Not done</span>

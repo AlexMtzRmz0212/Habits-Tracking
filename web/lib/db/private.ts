@@ -80,6 +80,17 @@ function asDate(value: unknown): string | null {
   return value ? String(value) : null;
 }
 
+/** Date of the last successful import (ISO yyyy-mm-dd, UTC), or null. */
+export async function getLastImportDate(): Promise<string | null> {
+  const sql = await requireUnlocked();
+  const rows = await sql`
+    SELECT max(finished_at) AS last_import_at
+    FROM sync_runs
+    WHERE status = 'success'
+  `;
+  return asDate(rows[0]?.last_import_at);
+}
+
 /** Every site block, published or not, in the order the public page uses. */
 export async function getAllBlocks(): Promise<PrivateSiteBlock[]> {
   const sql = await requireUnlocked();

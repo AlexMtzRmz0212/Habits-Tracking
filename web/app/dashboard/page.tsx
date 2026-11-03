@@ -7,9 +7,9 @@ import PinGate from "@/components/PinGate";
 import SiteBlocks from "@/components/SiteBlocks";
 import Tabs from "@/components/Tabs";
 import { CadenceBlocks, SleepBlocks } from "@/components/GraphBlocks";
-import { getAllBlocks } from "@/lib/db/private";
+import { getAllBlocks, getLastImportDate } from "@/lib/db/private";
 import { isUnlocked } from "@/lib/session";
-import { effectiveStatus, spanLine } from "@/lib/story";
+import { diaryDate, effectiveStatus, spanLine } from "@/lib/story";
 import type { SiteBlock } from "@/lib/types";
 
 // Never prerender: this page's content depends entirely on a cookie, and a
@@ -29,7 +29,8 @@ export default async function DashboardPage() {
     return <PinGate />;
   }
 
-  const all = await getAllBlocks();
+  const [all, lastImport] = await Promise.all([getAllBlocks(), getLastImportDate()]);
+  const importedOn = diaryDate(lastImport);
   const shown = all.filter((b) => b.isPublic).length;
 
   // A habit earns a card once it has a story: you wrote the why, you chose to
@@ -89,6 +90,7 @@ export default async function DashboardPage() {
         <p className="lede">
           {shown} of {all.length} shown on the public site
         </p>
+        {importedOn && <p className="meta">Last import: {importedOn}</p>}
       </header>
 
       {all.length === 0 ? (
